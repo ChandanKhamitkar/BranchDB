@@ -11,6 +11,28 @@
 - **Indexing:** In-memory indexing using a B-tree (or other structures) for fast lookups
 - **API/CLI Support:** Basic command-line interface for interacting with the database
 
+
+### ✅ In Scope:
+- Basic key-value data storage engine
+- On-disk persistence via append-only logs
+- In-memory indexing for fast key lookups
+- Data serialization/deserialization logic
+- Safe concurrent access (read/write locks)
+- Simple CLI interface for basic operations
+- Unit, integration, and benchmark testing
+- Clear documentation and open-source release
+
+
+## 🎯 Project Goals  
+### 🎯 Primary Goals:
+- Build a functional, performant key-value store in Go
+- Learn low-level storage and database design concepts
+- Implement both in-memory and on-disk storage strategies
+- Ensure safe concurrent access using Go’s concurrency primitives
+- Create a simple CLI for interacting with the database
+- Document all components with a clear, beginner-friendly explanation
+- Open-source the project under an MIT license with a clean GitHub repo
+
 ## Architecture
 
 Branch DB is designed with a minimalistic architecture to focus on core database principles like storage, indexing, and concurrency. The system consists of the following components:
