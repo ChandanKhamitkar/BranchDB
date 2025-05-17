@@ -41,3 +41,9 @@ Branch DB is designed with a minimalistic architecture to focus on core database
 2. **Indexing System** – Uses B-trees (or other methods) to index data for faster retrieval.
 3. **Concurrency Layer** – Implements thread-safety with read-write locks.
 4. **Persistence Layer** – Ensures durability by writing data to disk via log files.
+
+
+## Run Code
+```
+go run main.go
+```
