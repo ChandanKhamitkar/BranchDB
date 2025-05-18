@@ -1,21 +1,28 @@
 package server
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"strconv"
+	"strings"
 
 	"github.com/ChandanKhamitkar/BranchDB/config"
+	"github.com/ChandanKhamitkar/BranchDB/core"
+	"github.com/ChandanKhamitkar/BranchDB/models"
 )
 
-func readCommand(c net.Conn) (string, error) {
-	var buf []byte = make([]byte, 512)
-	n, err := c.Read(buf[:])
+func readCommand(c net.Conn) (*models.Command, error) {
+	reader := bufio.NewReader(c)
+	input, err := reader.ReadString('\n')
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return string(buf[:n]), nil
+
+	input = strings.TrimSpace(input)
+	return core.ParseCommand(input)
 }
 
 func respond(cmd string, c net.Conn) error {
@@ -23,7 +30,7 @@ func respond(cmd string, c net.Conn) error {
 	// as network expects data in byte slices
 	// _ represents no of bytes done, so no need here
 	// if error occurs return err, else return nil in case of success
-	if _,err := c.Write([]byte(cmd)); err != nil { 
+	if _, err := c.Write([]byte(cmd)); err != nil {
 		return err
 	}
 	return nil
@@ -44,35 +51,44 @@ func RunSyncTCPServer() {
 		// Accept the client connection request
 		con, err := listner.Accept()
 		if err != nil {
-			panic(err)
+			fmt.Println("Failed to accept connection:", err)
+			continue
 		}
 
 		// Increment the no.of connected clients
 		con_clients += 1
 		fmt.Println("Client connected with address : ", con.RemoteAddr(), " Concurrent Clients : ", con_clients)
-		
-		for {
-			// on the connected socket, continuously read the command and print it out
-			cmd, err := readCommand(con)
-			if err != nil {
-				con.Close()
+
+		//Handle Clients in Seperate Go routines
+		go func(conn net.Conn) {
+			defer conn.Close()
+			defer func() {
 				con_clients -= 1
-				fmt.Println("Client Disconnected : ", con.RemoteAddr(), " Concurrent Clients : ", con_clients)
+				fmt.Println("Client disconnected:", conn.RemoteAddr(), "Concurrent Clients:", con_clients)
+			}()
 
-				// if no more data ot read, if reached end of data
-				if err == io.EOF {
-					break
+			for {
+				// on the connected socket, continuously read the command and print it out
+				cmd, err := readCommand(con)
+				fmt.Println("cmd = ", cmd)
+				if err != nil {
+					if err == io.EOF {
+						return
+					}
+					fmt.Println("Read Error : ", err)
+					return
 				}
-				fmt.Println("err : ", err)
-			}
 
-			fmt.Println("Command Read : ", cmd)
+				fmt.Println("Command Read : ", cmd)
+				responseBytes, _ := json.Marshal(cmd)
 
-			// after reading data, respond back to client
-			if err = respond(cmd, con); err != nil {
-				fmt.Println("Error in write: ", err)
+				// after reading data, respond back to client
+				if err = respond(string(responseBytes), con); err != nil {
+					fmt.Println("Write Error: ", err)
+					return
+				}
 			}
-		}
+		}(con)
 	}
-	
+
 }
