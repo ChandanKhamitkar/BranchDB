@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"log"
 
 	"github.com/ChandanKhamitkar/BranchDB/config"
 	"github.com/ChandanKhamitkar/BranchDB/server"
@@ -16,6 +16,6 @@ func setUpFlags() {
 
 func main() {
 	setUpFlags()
-	fmt.Println("Growing the Branch Data 🌿")
+	log.Println("Growing the Branch Data 🌿")
 	server.RunSyncTCPServer()
 }

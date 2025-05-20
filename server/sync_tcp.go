@@ -3,16 +3,20 @@ package server
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"io"
+	"log"
 	"net"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ChandanKhamitkar/BranchDB/config"
 	"github.com/ChandanKhamitkar/BranchDB/core"
 	"github.com/ChandanKhamitkar/BranchDB/models"
 )
+
+// Initializing Store
+var store = core.NewStore()
 
 func readCommand(c net.Conn) (*models.Command, error) {
 	reader := bufio.NewReader(c)
@@ -37,7 +41,7 @@ func respond(cmd string, c net.Conn) error {
 }
 
 func RunSyncTCPServer() {
-	fmt.Println("Starting the Synchronous TCP server on : ", config.Host, config.Port)
+	log.Println("Starting the Synchronous TCP server on : ", config.Host, config.Port)
 
 	var con_clients int = 0
 
@@ -51,40 +55,42 @@ func RunSyncTCPServer() {
 		// Accept the client connection request
 		con, err := listner.Accept()
 		if err != nil {
-			fmt.Println("Failed to accept connection:", err)
+			log.Println("Failed to accept connection:", err)
 			continue
 		}
 
 		// Increment the no.of connected clients
 		con_clients += 1
-		fmt.Println("Client connected with address : ", con.RemoteAddr(), " Concurrent Clients : ", con_clients)
+		log.Println("Client connected with address : ", con.RemoteAddr(), " Concurrent Clients : ", con_clients)
 
 		//Handle Clients in Seperate Go routines
 		go func(conn net.Conn) {
+			time.Sleep(100 * time.Millisecond)
 			defer conn.Close()
 			defer func() {
 				con_clients -= 1
-				fmt.Println("Client disconnected:", conn.RemoteAddr(), "Concurrent Clients:", con_clients)
+				log.Println("Client disconnected:", conn.RemoteAddr(), "Concurrent Clients:", con_clients)
 			}()
 
 			for {
 				// on the connected socket, continuously read the command and print it out
 				cmd, err := readCommand(con)
-				fmt.Println("cmd = ", cmd)
+				log.Println("cmd = ", cmd)
 				if err != nil {
 					if err == io.EOF {
 						return
 					}
-					fmt.Println("Read Error : ", err)
+					log.Println("Read Error : ", err)
 					return
 				}
 
-				fmt.Println("Command Read : ", cmd)
-				responseBytes, _ := json.Marshal(cmd)
+				// Execute Command 📍
+				resp := core.ExecuteCommand(cmd, store)
+				responseBytes, _ := json.Marshal(resp)
 
 				// after reading data, respond back to client
-				if err = respond(string(responseBytes), con); err != nil {
-					fmt.Println("Write Error: ", err)
+				if err = respond(string(responseBytes)+"\n", con); err != nil {
+					log.Println("Write Error: ", err)
 					return
 				}
 			}

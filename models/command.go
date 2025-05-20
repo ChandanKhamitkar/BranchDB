@@ -2,7 +2,7 @@ package models
 
 type Command struct {
 	Cmd   string `json:"cmd"`
-	Key   string `json:"key"`
+	Key   string `json:"key,omitempty"`
 	Value string `json:"value,omitempty"`
 }
 
