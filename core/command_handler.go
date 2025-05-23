@@ -1,11 +1,25 @@
 package core
 
-import "github.com/ChandanKhamitkar/BranchDB/models"
+import (
+	"log"
+	"strings"
+
+	"github.com/ChandanKhamitkar/BranchDB/models"
+)
 
 func ExecuteCommand(cmd *models.Command, store *Store) *models.Response {
+	log.Println("Command TYPE: ", cmd.Cmd)
+	if cmd.Cmd == "SET" {
+		log.Println("Value received to executable : ", cmd.Data.Value)
+	}
+
 	switch cmd.Cmd {
 	case "SET":
-		store.SET(cmd.Key, cmd.Value)
+		// if no value then send
+		if strings.TrimSpace(cmd.Data.Value) == "" {
+			return &models.Response{Status: "ERR", Result: "SET command expects value"}
+		}
+		store.SET(cmd.Key, cmd.Data.Value, cmd.Data.ExpiresAt)
 		return &models.Response{Status: "OK", Result: "store"}
 
 	case "GET":

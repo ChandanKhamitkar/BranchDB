@@ -43,6 +43,9 @@ func respond(cmd string, c net.Conn) error {
 func RunSyncTCPServer() {
 	log.Println("Starting the Synchronous TCP server on : ", config.Host, config.Port)
 
+	// Start TTL Reaper 
+	store.TTL_Reaper(20 * time.Second)
+	
 	var con_clients int = 0
 
 	// listen to configured host & port
@@ -89,7 +92,7 @@ func RunSyncTCPServer() {
 				responseBytes, _ := json.Marshal(resp)
 
 				// after reading data, respond back to client
-				if err = respond(string(responseBytes)+"\n", con); err != nil {
+				if err = respond("\n"+string(responseBytes)+"\n> ", con); err != nil {
 					log.Println("Write Error: ", err)
 					return
 				}

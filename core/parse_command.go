@@ -4,24 +4,30 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ChandanKhamitkar/BranchDB/models"
 )
 
 func ParseCommand(input string) (*models.Command, error) {
 	log.Println("input recevied for parsing : ", input)
-	
-	// find the length of parts in string
-	parts := strings.Fields(input)
+	input = strings.TrimSpace(input)
 
-	if len(parts) == 0 {
+	if input == "" {
 		return nil, errors.New("empty command")
 	}
 
-	cmdType := strings.ToUpper(parts[0])
+	// Tokenize basic command type
+	parts := strings.SplitN(input, " ", 3)
+	log.Println("parts length = ", len(parts))
+	if len(parts) < 1 {
+		return nil, errors.New("invalid command")
+	}
+
 	cmd := &models.Command{
-		Cmd: cmdType,
+		Cmd: strings.ToUpper(parts[0]),
 	}
 
 	// supports commands like `PING`
@@ -32,18 +38,38 @@ func ParseCommand(input string) (*models.Command, error) {
 	// Key also been passed
 	cmd.Key = parts[1]
 
-	// if `value` to passed ( Must be JSON format )
-	if len(parts) > 2 {
-		valuePart := strings.Join(parts[2:], " ")
+	// GET, DELETE
+	if len(parts) == 2 && (cmd.Key == "GET" || cmd.Key == "DELETE") {
+		return cmd, nil
+	}
 
-		// validate JSON
-		if json.Valid([]byte(valuePart)) {
-			cmd.Value = valuePart
+	if cmd.Cmd == "SET" {
+		// process value + optional EX
+		valueSection := parts[2]
+		exIndex := strings.LastIndex(strings.ToUpper(valueSection), "EX ")
+		expiresAt := time.Time{}
+
+		var valuePart string
+		if exIndex != -1 {
+			valuePart = strings.TrimSpace(valueSection[:exIndex])
+			ttlStr := strings.TrimSpace(valueSection[exIndex+3:])
+			ttl, err := strconv.Atoi(ttlStr)
+			if err != nil {
+				return nil, errors.New("invalid TTL value")
+			}
+			expiresAt = time.Now().Add(time.Duration(ttl) * time.Second)
 		} else {
-			// throw error and terminate connection
+			valuePart = strings.TrimSpace(valueSection)
+		}
+
+		if json.Valid([]byte(valuePart)) {
+			cmd.Data = models.Data{
+				Value:     valuePart,
+				ExpiresAt: expiresAt,
+			}
+		} else {
 			return nil, errors.New("value passed is not a valid JSON")
 		}
 	}
-
 	return cmd, nil
 }

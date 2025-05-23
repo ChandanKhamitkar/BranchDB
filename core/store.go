@@ -1,16 +1,21 @@
 package core
 
-import "sync"
+import (
+	"sync"
+	"time"
+
+	"github.com/ChandanKhamitkar/BranchDB/models"
+)
 
 type Store struct {
 	mu sync.RWMutex
-	data map[string]string // both key value is of type string
+	data map[string]models.Data // both key value is of type string
 }
 
 // Initialize NewStore
 func NewStore() *Store {
 	return &Store{
-		data: make(map[string]string),
+		data: make(map[string]models.Data),
 	}
 }
 
@@ -18,19 +23,33 @@ func NewStore() *Store {
 // First `Lock` before Writing value
 // (s *Store) -> assuming `s` as instance name for store in this func
 // and any modification made here will reflect in actual store as well
-func (s *Store) SET(key, value string) {
+func (s *Store) SET(key, value string, ttl time.Time) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.data[key] = value
+	s.data[key] = models.Data{
+		Value: value,
+		ExpiresAt : ttl,
+	}
 }
 
 // GET method
 // First `Read Lock`
 func (s *Store) GET(key string) (string, bool) {
 	s.mu.RLock()
-	defer s.mu.RUnlock()
 	val, ok := s.data[key]
-	return val, ok
+
+	// Check TTL while retriving
+	if !val.ExpiresAt.IsZero() && time.Now().After(val.ExpiresAt) {
+		// expired
+		s.mu.RUnlock()
+		s.mu.Lock()
+		delete(s.data, key)
+		s.mu.Unlock()
+		return "", false;
+	}
+
+	s.mu.RUnlock()
+	return val.Value, ok
 }
 
 // DELETE method
@@ -47,4 +66,23 @@ func (s *Store) DELETE(key string) (bool) {
 	}
 	
 	return false
+}
+
+// --- TTL ---
+// Periodically Deletes expired keys
+func (s *Store) TTL_Reaper(interval time.Duration) {
+	go func () {
+		for {
+			time.Sleep(interval)
+			now := time.Now()
+
+			s.mu.Lock()
+			for key, ttl := range s.data {
+				if !ttl.ExpiresAt.IsZero() && now.After(ttl.ExpiresAt) {
+					delete(s.data, key)
+				}
+			}
+			s.mu.Unlock()
+		}
+	}()
 }
