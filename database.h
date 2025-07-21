@@ -35,7 +35,7 @@ namespace branchdb
             bool expire(const string& key, seconds ttl_duration);
 
             // persist Method : Removes the TTL of a key.
-            bool persist(const string& key);
+            void persist(const string& key);
 
         private:
             // Core key-value store
