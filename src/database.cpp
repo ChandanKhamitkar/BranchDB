@@ -1,7 +1,7 @@
-#include "database.h";
 #include <iostream>
 #include <chrono>
 #include <optional>
+#include "branchdb/database.h";
 
 using namespace std;
 using namespace chrono;
@@ -16,8 +16,8 @@ namespace branchdb
     // SET - Logic
     bool Database::set(const string &key, const string &value, seconds ttl_duration)
     {
-        data_[key] = ValueMetaData(value, ttl_duration);
-        cout << "✅SET" << key << " -> " << value << " (TTL: " << ttl_duration.count() << "s)" << endl;
+        data_.insert_or_assign(key, ValueMetaData(value, ttl_duration));
+        cout << "[OK] SET: key " << key << " -> " << value << " (TTL: " << ttl_duration.count() << "s)" << endl;
         return true;
     }
 
@@ -29,20 +29,20 @@ namespace branchdb
         // Key not found
         if (it == data_.end())
         {
-            cout << "❌GET: key " << key << " not found." << endl;
+            cout << "[X] GET: key " << key << " not found." << endl;
             return nullopt;
         }
 
         // if key expired
         if (it->second.is_expired())
         {
-            cout << "❌GET: key " << key << " found but expired. Deleting" << endl;
+            cout << "[X] GET: key " << key << " found but expired. Deleting" << endl;
             data_.erase(it);
             return nullopt;
         }
 
         // Key found
-        cout << "✅GET: key " << key << " -> " << it->second.value << endl;
+        cout << "[OK] GET: key " << key << " -> " << it->second.value << endl;
         return it->second.value;
     }
 
@@ -54,12 +54,12 @@ namespace branchdb
         // Delete key
         if (erased_count > 0)
         {
-            cout << "✅DEL: key " << key << " deleted successfully." << endl;
+            cout << "[OK] DEL: key " << key << " deleted successfully." << endl;
             return true;
         }
 
         // Cannot Delete - Key doesn't exists
-        cout << "❌DEL: key " << key << " cannot delete, cause key doesn't exists.`" << endl;
+        cout << "[X] DEL: key " << key << " cannot delete, cause key doesn't exists.`" << endl;
         return false;
     }
 
@@ -71,20 +71,20 @@ namespace branchdb
         // Key Not Found
         if (it == data_.end())
         {
-            cout << "❌EXISTS: key " << key << " not found." << endl;
+            cout << "[X] EXISTS: key " << key << " not found." << endl;
             return false;
         }
 
         // Key expired
         if (it->second.is_expired())
         {
-            cout << "❌EXISTS: key " << key << " found but expired. Deleting" << endl;
+            cout << "[X] EXISTS: key " << key << " found but expired. Deleting" << endl;
             data_.erase(it);
             return false;
         }
 
         // Key Exists
-        cout << "✅EXISTS: key " << key << " exists." << endl;
+        cout << "[OK] EXISTS: key " << key << " exists." << endl;
         return true;
     }
 
@@ -96,20 +96,20 @@ namespace branchdb
         // Key Not Found
         if (it == data_.end())
         {
-            cout << "❌TTL: key " << key << " not found." << endl;
+            cout << "[X] TTL: key " << key << " not found." << endl;
             return -2; // -2 indicates key not found
         }
 
         // Key expired
         if (it->second.is_expired())
         {
-            cout << "❌TTL: key " << key << " found but expired. Deleting" << endl;
+            cout << "[X] TTL: key " << key << " found but expired. Deleting" << endl;
             data_.erase(it);
             return false;
         }
 
         long long remaining = it->second.remaining_ttl_seconds();
-        cout << "✅TTL: key " << key << " has" << remaining << " seconds remaining." << endl;
+        cout << "[OK] TTL: key " << key << " has" << remaining << " seconds remaining." << endl;
         return remaining;
     }
 
@@ -123,14 +123,13 @@ namespace branchdb
         {
             it->second.creation_time = steady_clock::now();
             it->second.ttl_duration = ttl_duration;
-            cout << "✅Expire: key " << key << " TTL set to " << ttl_duration.count() << "s." << endl;
+            cout << "[OK] Expire: key " << key << " TTL set to " << ttl_duration.count() << "s." << endl;
+            return true;
         }
 
         // key not found
-        else
-        {
-            cout << "❌EXPIRE: Key '" << key << "' not found." << endl;
-        }
+        cout << "[X] EXPIRE: Key '" << key << "' not found." << endl;
+        return false;
     }
 
     // Persists - Logic
@@ -142,11 +141,11 @@ namespace branchdb
         if (it != data_.end())
         {
             it->second.ttl_duration = seconds(0);
-            cout << "✅PERSIST: key " << key << " TTL removed." << endl;
+            cout << "[OK] PERSIST: key " << key << " TTL removed." << endl;
         }
         else
         {
-            cout << "❌PERSIST: key " << key << " not found." << endl;
+            cout << "[X] PERSIST: key " << key << " not found." << endl;
         }
     }
 }

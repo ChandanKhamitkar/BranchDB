@@ -31,7 +31,14 @@ Branch DB is designed with a minimalistic architecture to focus on core database
 2. **Concurrency Layer** – Implements thread-safety with read-write locks.
 3. **Persistence Layer** – Ensures durability by writing data to disk via log files.
 4. **TTL Manager** – A background thread that periodically scans for and removes expired keys.
-<!-- 
+
 ## Run Code
+⚠️ Go to Root Directory of BranchDB
 ```
-``` -->
+mkdir build
+cd build
+cmake ..
+cmake --build .
+cd Debug
+./BranchDB.exe
+```
