@@ -42,3 +42,8 @@ cmake --build .
 cd Debug
 ./BranchDB.exe
 ```
+### OR
+### If you are on BASH/UNIX terminal, directly run
+```
+./branchdb-run.sh
+```

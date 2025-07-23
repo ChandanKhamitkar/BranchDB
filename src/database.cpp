@@ -109,7 +109,13 @@ namespace branchdb
         }
 
         long long remaining = it->second.remaining_ttl_seconds();
-        cout << "[OK] TTL: key " << key << " has" << remaining << " seconds remaining." << endl;
+        // Persist Key
+        if(remaining == -1){
+            cout << "[OK] TTL: key " << key << " has no expiry" << endl;
+        }
+        else {
+            cout << "[OK] TTL: key " << key << " has " << remaining << " seconds remaining." << endl;
+        }
         return remaining;
     }
 

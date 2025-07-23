@@ -8,12 +8,41 @@ set(CMAKE_CXX_STANDARD 17) # Use C++17 for std::optional
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 # Define source files for Executables
-set(SRC_FILES
+set(SRC_CORE_FILES
     src/main.cpp
     src/database.cpp
 )
+set(SRC_CLI_FILES
+
+    # CLI Entry point
+    src/cli/start_cli.cpp
+
+    # CLI Commands
+    src/cli/commands/set_command.cpp
+    src/cli/commands/get_command.cpp
+    src/cli/commands/del_command.cpp
+    src/cli/commands/ttl_command.cpp
+    src/cli/commands/expire_command.cpp
+    src/cli/commands/exists_command.cpp
+    src/cli/commands/persist_command.cpp
+
+    # Commands helper
+    src/cli/commands/helper/is_valid_seconds.cpp
+)
+    
+set(SRC_TEST_FILES
+    # Test
+    src/test/main_test.cpp
+)
+
+# ALL SRC FILES
+set(ALL_SRC_FILES
+    ${SRC_CORE_FILES}
+    ${SRC_CLI_FILES}
+    ${SRC_TEST_FILES}
+)
 
 # Add an Executabale target
-add_executable(BranchDB ${SRC_FILES})
+add_executable(BranchDB ${ALL_SRC_FILES})
 
 target_include_directories(BranchDB PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
