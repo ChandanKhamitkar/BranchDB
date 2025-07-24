@@ -9,6 +9,9 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <thread>
+#include <atomic>
+#include <shared_mutex>
 
 using namespace std;
 using namespace chrono;
@@ -16,56 +19,68 @@ using namespace chrono;
 namespace branchdb
 {
     // OP codes
-    enum LogOperation : char {
+    enum LogOperation : char
+    {
         SET_OP = 'S',
         DEL_OP = 'D',
     };
 
     const string LOG_FILE_NAME = "branchdb.log";
-    class Database {
-        public:
-            Database();
-            ~Database();
+    class Database
+    {
+    public:
+        Database();
+        ~Database();
 
-            // SET Method
-            bool set(const string& key, const string& value, seconds ttl_duration = seconds(0));
+        // SET Method
+        bool set(const string &key, const string &value, seconds ttl_duration = seconds(0));
 
-            // GET Method
-            optional<string> get(const string& key);
+        // GET Method
+        optional<string> get(const string &key);
 
-            // DEL Method
-            bool del(const string& key);
+        // DEL Method
+        bool del(const string &key);
 
-            // Exists Method : Checks if a key exists
-            bool exists(const string& key);
+        // Exists Method : Checks if a key exists
+        bool exists(const string &key);
 
-            // TTL Method : Returns the remaining time
-            long long ttl(const string& key);
+        // TTL Method : Returns the remaining time
+        long long ttl(const string &key);
 
-            // expire Method : Sets a new TTL for an existing key.
-            bool expire(const string& key, seconds ttl_duration);
+        // expire Method : Sets a new TTL for an existing key.
+        bool expire(const string &key, seconds ttl_duration);
 
-            // persist Method : Removes the TTL of a key.
-            void persist(const string& key);
+        // persist Method : Removes the TTL of a key.
+        void persist(const string &key);
 
-        private:
-            // Core key-value store
-            unordered_map<string, ValueMetaData> data_;
+    private:
+        // Core key-value store
+        unordered_map<string, ValueMetaData> data_;
 
-            // writing to log
-            ofstream log_file_out_;
-            bool is_recovering_ = false;
+        // Mutex
+        shared_mutex data_mutex_;
+        unique_ptr<thread> ttl_cleanup_thread_; // with this we can dynamically create threads
+        atomic<bool> stop_ttl_cleanup_ = false; // thread safe boolean flag, which can be shared b/w multiple threads.
+        const seconds TTL_SCAN_INTERVAL_ = seconds(5);
 
-            // internal SET 
-            void internal_set(const string& key, const ValueMetaData& metadata);
-            bool internal_del(const string& key);
+        // writing to log
+        ofstream log_file_out_;
+        bool is_recovering_ = false;
 
-            // Load from log file
-            void load_from_log();
+        // internal SET
+        void internal_set(const string &key, const ValueMetaData &metadata);
+        bool internal_del(const string &key);
 
-            void write_string_to_log(ostream& os,const string& s);
-            optional<string> read_string_from_log(istream& is);
+        // Load from log file
+        void load_from_log();
+
+        void write_string_to_log(ostream &os, const string &s);
+        optional<string> read_string_from_log(istream &is);
+
+        // TTL Cleanup
+        void ttl_cleanup_loop();
     };
 } // namespace branchdb
+
 
 #endif

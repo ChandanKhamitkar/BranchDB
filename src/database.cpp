@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <limits>
 #include <stdexcept>
+#include <mutex>
 
 using namespace std;
 using namespace chrono;
@@ -48,7 +49,7 @@ namespace branchdb
         return s;
     }
 
-    // --- [Private] Internal SET | DEL operation ---
+    // 📍--- [Private] Internal SET | DEL operation ---
     void Database::internal_set(const string &key, const ValueMetaData &metadata)
     {
         data_[key] = metadata;
@@ -71,11 +72,22 @@ namespace branchdb
         }
         cout << "Branch DB initialized. Attempting recovery from " << LOG_FILE_NAME << "..." << endl;
         load_from_log();
-        cout << "Recovery complete. Database contains " << data_.size() << " keys." << endl;
+        cout << "Recovery complete. Database contains " << data_.size() << " keys." << endl << endl;
+
+        // --- Start TTL cleanup thread ---
+        ttl_cleanup_thread_ = make_unique<thread>(&Database::ttl_cleanup_loop, this);
     }
 
     Database::~Database()
     {
+        // --- Stop and join TTL cleanup thread ---
+        stop_ttl_cleanup_ = true;
+        if (ttl_cleanup_thread_ && ttl_cleanup_thread_->joinable())
+        {
+            ttl_cleanup_thread_->join();
+        }
+
+        // close output stream for log file
         if (log_file_out_.is_open())
         {
             log_file_out_.close();
@@ -139,12 +151,56 @@ namespace branchdb
         is_recovering_ = false;
     }
 
-    // --- Public Operations | CLI Commands Logics ---
+    // --- TTL Cleanup ---
+    void Database::ttl_cleanup_loop()
+    {
+        // cout << "TTL cleanup loop started. Scanning every " << TTL_SCAN_INTERVAL_.count() << " seconds." << endl;
+
+        while (!stop_ttl_cleanup_)
+        {
+            this_thread::sleep_for(TTL_SCAN_INTERVAL_);
+            if (stop_ttl_cleanup_)
+                break;
+
+            vector<string> keys_to_delete;
+
+            // acquire Read lock by 'shared_lock' - allows multiple readers or single writer
+            {
+                shared_lock<shared_mutex> lock(data_mutex_);
+                for (const auto &pair : data_)
+                {
+                    if (pair.second.is_expired())
+                    {
+                        keys_to_delete.push_back(pair.first);
+                    }
+                }
+            } // Release Read lock
+
+            // acquire Write lock by 'unique_lock'
+            if (!keys_to_delete.empty())
+            {
+                unique_lock<shared_mutex> lock(data_mutex_);
+                for (const string &key : keys_to_delete)
+                {
+                    internal_del(key);
+                    // cout << "[TTL BG Cleaner] Expired key '" << key << "' removed from memory." << endl;
+                }
+
+                // Deallocate occupied space
+                keys_to_delete.clear();
+                keys_to_delete.shrink_to_fit();
+            }
+        }
+        cout << "TTL cleanup thread stopped." << std::endl;
+    }
+
+    // 📍--- Public Operations | CLI Commands Logics ---
 
     // SET - Logic
     bool Database::set(const string &key, const string &value, seconds ttl_duration)
     {
         ValueMetaData metadata(value, ttl_duration);
+        unique_lock<shared_mutex> lock(data_mutex_);
 
         if (!is_recovering_)
         {
@@ -169,6 +225,7 @@ namespace branchdb
     // GET - Logic
     optional<string> Database::get(const string &key)
     {
+        shared_lock<shared_mutex> lock(data_mutex_);
         auto it = data_.find(key);
 
         // Key not found
@@ -194,6 +251,7 @@ namespace branchdb
     // DEL - Logic
     bool Database::del(const string &key)
     {
+        unique_lock<shared_mutex> lock(data_mutex_);
         if (!is_recovering_)
         {
             try
@@ -225,6 +283,7 @@ namespace branchdb
     // Exists - Logic
     bool Database::exists(const string &key)
     {
+        shared_lock<shared_mutex> lock(data_mutex_);
         auto it = data_.find(key);
 
         // Key Not Found
@@ -237,8 +296,6 @@ namespace branchdb
         // Key expired
         if (it->second.is_expired())
         {
-            cout << "[X] EXISTS: key " << key << " found but expired. Deleting" << endl;
-            data_.erase(it);
             return false;
         }
 
@@ -250,6 +307,7 @@ namespace branchdb
     // TTL - Logic
     long long Database::ttl(const string &key)
     {
+        shared_lock<shared_mutex> lock(data_mutex_);
         auto it = data_.find(key);
 
         // Key Not Found
@@ -262,9 +320,7 @@ namespace branchdb
         // Key expired
         if (it->second.is_expired())
         {
-            cout << "[X] TTL: key " << key << " found but expired. Deleting" << endl;
-            data_.erase(it);
-            return false;
+            return 0;
         }
 
         long long remaining = it->second.remaining_ttl_seconds();
@@ -283,6 +339,7 @@ namespace branchdb
     // Expire - Logic
     bool Database::expire(const string &key, seconds ttl_duration)
     {
+        unique_lock<shared_mutex> lock(data_mutex_);
         auto it = data_.find(key);
 
         // Key found
@@ -317,6 +374,7 @@ namespace branchdb
     // Persists - Logic
     void Database::persist(const string &key)
     {
+        unique_lock<shared_mutex> lock(data_mutex_);
         auto it = data_.find(key);
 
         // key found
