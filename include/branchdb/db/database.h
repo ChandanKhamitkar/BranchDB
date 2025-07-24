@@ -15,7 +15,6 @@ using namespace chrono;
 
 namespace branchdb
 {
-
     // OP codes
     enum LogOperation : char {
         SET_OP = 'S',
@@ -64,7 +63,7 @@ namespace branchdb
             // Load from log file
             void load_from_log();
 
-            void write_string_to_log(ostream& os, string& s);
+            void write_string_to_log(ostream& os,const string& s);
             optional<string> read_string_from_log(istream& is);
     };
 } // namespace branchdb

@@ -16,8 +16,13 @@ namespace branchdb
         seconds ttl_duration;
 
         // initialize constructor
-        ValueMetaData(const string& val, seconds ttl = seconds(0)) : value(val), creation_time(steady_clock::now()), ttl_duration(ttl) {}
-
+        ValueMetaData(const string &val, seconds ttl = seconds(0)) : value(val), creation_time(steady_clock::now()), ttl_duration(ttl) {}
+        ValueMetaData()
+            : value(""),
+              creation_time(steady_clock::now()),
+              ttl_duration(seconds(0))
+        {
+        }
         // check IF key EXPIRED : Method
         bool is_expired() const;
 
@@ -25,10 +30,10 @@ namespace branchdb
         long long remaining_ttl_seconds() const;
 
         // Serialization - Data -> Binary Stream
-        void to_binary(ostream& os) const;
+        void to_binary(ostream &os) const;
 
         // Deserialization - Binary Stream -> Data
-        static optional<ValueMetaData> from_binary(istream& is);
+        static optional<ValueMetaData> from_binary(istream &is);
     };
 
 }

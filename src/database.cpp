@@ -1,3 +1,5 @@
+#include "branchdb/db/value_metadata.h";
+#include "branchdb/db/database.h";
 #include <iostream>
 #include <chrono>
 #include <fstream>
@@ -5,8 +7,6 @@
 #include <algorithm>
 #include <limits>
 #include <stdexcept>
-#include "branchdb/db/database.h";
-#include "branchdb/db/value_metadata.h";
 
 using namespace std;
 using namespace chrono;
@@ -14,7 +14,7 @@ using namespace chrono;
 namespace branchdb
 {
     // Private Operations
-    void Database::write_string_to_log(ostream &os, string &s)
+    void Database::write_string_to_log(ostream &os, const string &s)
     {
         uint32_t len = static_cast<uint32_t>(s.length());
         os.write(reinterpret_cast<const char *>(&len), sizeof(len));
@@ -143,8 +143,25 @@ namespace branchdb
 
     // SET - Logic
     bool Database::set(const string &key, const string &value, seconds ttl_duration)
-    {   
-        data_.insert_or_assign(key, ValueMetaData(value, ttl_duration));
+    {
+        ValueMetaData metadata(value, ttl_duration);
+
+        if (!is_recovering_)
+        {
+            try
+            {
+                log_file_out_.put(SET_OP);
+                write_string_to_log(log_file_out_, key);
+                metadata.to_binary(log_file_out_);
+                log_file_out_.flush(); // writing data to disk immediately
+            }
+            catch (const runtime_error &e)
+            {
+                cerr << "ERROR: Failed to log SET operation for key '" << key << "': " << e.what() << endl;
+                return false;
+            }
+        }
+        internal_set(key, metadata);
         cout << "[OK] SET: key " << key << " -> " << value << " (TTL: " << ttl_duration.count() << "s)" << endl;
         return true;
     }
@@ -177,18 +194,32 @@ namespace branchdb
     // DEL - Logic
     bool Database::del(const string &key)
     {
-        size_t erased_count = data_.erase(key);
-
-        // Delete key
-        if (erased_count > 0)
+        if (!is_recovering_)
         {
-            cout << "[OK] DEL: key " << key << " deleted successfully." << endl;
-            return true;
+            try
+            {
+                log_file_out_.put(DEL_OP);
+                write_string_to_log(log_file_out_, key);
+                log_file_out_.flush();
+            }
+            catch (const runtime_error &e)
+            {
+                cerr << "ERROR: Failed to log DEL operation for key '" << key << "': " << e.what() << endl;
+                return false;
+            }
         }
 
-        // Cannot Delete - Key doesn't exists
-        cout << "[X] DEL: key " << key << " cannot delete, cause key doesn't exists.`" << endl;
-        return false;
+        bool was_deleted = internal_del(key);
+        if (was_deleted)
+        {
+            cout << "[OK] DEL: key " << key << " deleted successfully." << endl;
+        }
+        else
+        {
+            // Cannot Delete - Key doesn't exists
+            cout << "[X] DEL: key " << key << " cannot delete, cause key doesn't exists.`" << endl;
+        }
+        return was_deleted;
     }
 
     // Exists - Logic
@@ -257,8 +288,23 @@ namespace branchdb
         // Key found
         if (it != data_.end())
         {
-            it->second.creation_time = steady_clock::now();
-            it->second.ttl_duration = ttl_duration;
+            ValueMetaData new_metadata(it->second.value, ttl_duration);
+            if (!is_recovering_)
+            {
+                try
+                {
+                    log_file_out_.put(SET_OP);
+                    write_string_to_log(log_file_out_, key);
+                    new_metadata.to_binary(log_file_out_);
+                    log_file_out_.flush();
+                }
+                catch (const runtime_error &e)
+                {
+                    cerr << "ERROR: Failed to log EXPIRE operation for key '" << key << "': " << e.what() << endl;
+                    return false;
+                }
+            }
+            internal_set(key, new_metadata);
             cout << "[OK] Expire: key " << key << " TTL set to " << ttl_duration.count() << "s." << endl;
             return true;
         }
@@ -276,8 +322,26 @@ namespace branchdb
         // key found
         if (it != data_.end())
         {
-            it->second.ttl_duration = seconds(0);
-            cout << "[OK] PERSIST: key " << key << " TTL removed." << endl;
+            ValueMetaData new_metadata(it->second.value, seconds(0));
+            // Add to logs
+            if (!is_recovering_)
+            {
+                try
+                {
+                    log_file_out_.put(SET_OP);
+                    write_string_to_log(log_file_out_, key);
+                    new_metadata.to_binary(log_file_out_);
+                    log_file_out_.flush();
+                }
+                catch (const runtime_error &e)
+                {
+                    cerr << "ERROR: Failed to log PERSIST operation for key '" << key << "': " << e.what() << endl;
+                    return;
+                }
+
+                internal_set(key, new_metadata);
+                cout << "[OK] PERSIST: key " << key << " TTL removed." << endl;
+            }
         }
         else
         {
