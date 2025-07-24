@@ -28,7 +28,7 @@ namespace branchdb
         void to_binary(ostream& os) const;
 
         // Deserialization - Binary Stream -> Data
-        optional<ValueMetaData>  from_binary(istream& is) const;
+        static optional<ValueMetaData> from_binary(istream& is);
     };
 
 }

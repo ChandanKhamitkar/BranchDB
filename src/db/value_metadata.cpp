@@ -56,7 +56,7 @@ namespace branchdb
     }
     
     // Deserialization - Binary Stream -> Data
-    optional<ValueMetaData>  ValueMetaData::from_binary(istream& is) const {
+    optional<ValueMetaData>  ValueMetaData::from_binary(istream& is) {
         if(!is.good() || is.peek() == EOF) {
             return nullopt;
         }

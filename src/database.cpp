@@ -1,21 +1,149 @@
 #include <iostream>
 #include <chrono>
+#include <fstream>
 #include <optional>
+#include <algorithm>
+#include <limits>
+#include <stdexcept>
 #include "branchdb/db/database.h";
+#include "branchdb/db/value_metadata.h";
 
 using namespace std;
 using namespace chrono;
 
 namespace branchdb
 {
-    Database::Database()
+    // Private Operations
+    void Database::write_string_to_log(ostream &os, string &s)
     {
-        cout << "Branch DB initialized." << endl;
+        uint32_t len = static_cast<uint32_t>(s.length());
+        os.write(reinterpret_cast<const char *>(&len), sizeof(len));
+        os.write(s.data(), len);
+        if (!os.good())
+        {
+            throw std::runtime_error("Error writing string to log file.");
+        }
     }
+
+    optional<string> Database::read_string_from_log(istream &is)
+    {
+        uint32_t len;
+        is.read(reinterpret_cast<char *>(&len), sizeof(len));
+        if (!is.good())
+            return nullopt;
+
+        const uint32_t MAX_READ_LEN = 1024 * 1024; // 1MB
+        if (len > MAX_READ_LEN)
+        {
+            cerr << "WARNING: Corrupted log entry detected (string length too large: " << len << ")." << endl;
+            return nullopt;
+        }
+
+        string s;
+        s.resize(len);
+        is.read(&s[0], len);
+        if (!is.good())
+            return nullopt;
+
+        return s;
+    }
+
+    // --- [Private] Internal SET | DEL operation ---
+    void Database::internal_set(const string &key, const ValueMetaData &metadata)
+    {
+        data_[key] = metadata;
+    }
+
+    bool Database::internal_del(const string &key)
+    {
+        return data_.erase(key) > 0;
+    }
+
+    // --- Database Constructor & Deconstructor
+    // ios::out - opens file for writing
+    // ios::app - opens file for writing - appends new data at end
+    // ios::binary - opens file in binary mode
+    Database::Database() : log_file_out_(LOG_FILE_NAME, ios::out | ios::app | ios::binary)
+    {
+        if (!log_file_out_.is_open())
+        {
+            throw runtime_error("Failed to open log file for writing: " + LOG_FILE_NAME);
+        }
+        cout << "Branch DB initialized. Attempting recovery from " << LOG_FILE_NAME << "..." << endl;
+        load_from_log();
+        cout << "Recovery complete. Database contains " << data_.size() << " keys." << endl;
+    }
+
+    Database::~Database()
+    {
+        if (log_file_out_.is_open())
+        {
+            log_file_out_.close();
+        }
+        cout << "Branch DB shut down." << endl;
+    }
+
+    // --- Log recovery Method ---
+    void Database::load_from_log()
+    {
+        is_recovering_ = true;
+
+        ifstream log_file_in(LOG_FILE_NAME, ios::in | ios::binary);
+        if (!log_file_in.is_open())
+        {
+            cerr << "WARNING: Log file '" << LOG_FILE_NAME << "' not found or could not be opened for reading. Starting with empty database." << endl;
+            is_recovering_ = false;
+            return;
+        }
+
+        char op_code;
+        while (log_file_in.read(&op_code, sizeof(op_code)))
+        {
+            try
+            {
+                optional<string> key_opt = read_string_from_log(log_file_in);
+                if (!key_opt)
+                {
+                    cerr << "ERROR: Corrupted log entry (missing key) or EOF while reading opp: " << op_code << endl;
+                    break;
+                }
+
+                string key = *key_opt;
+                if (op_code == SET_OP)
+                {
+                    optional<ValueMetaData> metadata_opt = ValueMetaData::from_binary(log_file_in);
+                    if (!metadata_opt)
+                    {
+                        cerr << "ERROR: Corrupted log entry (missing metadata for SET op) for key: " << key << endl;
+                        break;
+                    }
+                    internal_set(key, *metadata_opt);
+                }
+                else if (op_code == DEL_OP)
+                {
+                    internal_del(key);
+                }
+                else
+                {
+                    cerr << "ERROR: Unknown op_code '" << op_code << "' in log file. Corrupted log?" << endl;
+                    break;
+                }
+            }
+            catch (const runtime_error &e)
+            {
+                cerr << "FATAL ERROR during log recovery: " << e.what() << ". Log may be corrupted. Stopping recovery." << endl;
+                break;
+            }
+        }
+        log_file_in.close();
+        is_recovering_ = false;
+    }
+
+    // --- Public Operations | CLI Commands Logics ---
 
     // SET - Logic
     bool Database::set(const string &key, const string &value, seconds ttl_duration)
-    {
+    {   
         data_.insert_or_assign(key, ValueMetaData(value, ttl_duration));
         cout << "[OK] SET: key " << key << " -> " << value << " (TTL: " << ttl_duration.count() << "s)" << endl;
         return true;

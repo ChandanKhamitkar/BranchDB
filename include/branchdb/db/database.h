@@ -6,15 +6,27 @@
 #include <chrono>
 #include "value_metadata.h"
 #include <optional>
+#include <fstream>
+#include <iostream>
+#include <memory>
 
 using namespace std;
 using namespace chrono;
 
 namespace branchdb
 {
+
+    // OP codes
+    enum LogOperation : char {
+        SET_OP = 'S',
+        DEL_OP = 'D',
+    };
+
+    const string LOG_FILE_NAME = "branchdb.log";
     class Database {
         public:
             Database();
+            ~Database();
 
             // SET Method
             bool set(const string& key, const string& value, seconds ttl_duration = seconds(0));
@@ -40,6 +52,21 @@ namespace branchdb
         private:
             // Core key-value store
             unordered_map<string, ValueMetaData> data_;
+
+            // writing to log
+            ofstream log_file_out_;
+            bool is_recovering_ = false;
+
+            // internal SET 
+            void internal_set(const string& key, const ValueMetaData& metadata);
+            bool internal_del(const string& key);
+
+            // Load from log file
+            void load_from_log();
+
+            void write_string_to_log(ostream& os, string& s);
+            optional<string> read_string_from_log(istream& is);
     };
 } // namespace branchdb
+
 #endif
