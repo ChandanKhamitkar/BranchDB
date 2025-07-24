@@ -1,5 +1,5 @@
 #include <iostream>
-#include <branchdb/database.h>
+#include <branchdb/db/database.h>
 #include <branchdb/test/main_test.h>
 #include <branchdb/cli/command.h>
 #include <thread>
@@ -13,7 +13,7 @@ using namespace chrono;
 
 namespace cli
 {
-    void startCLI(branchdb::Database& db)
+    void startCLI(branchdb::Database &db)
     {
         cout << "BranchDB CLI. Type 'EXIT' to quit." << endl;
 
@@ -52,7 +52,8 @@ namespace cli
             }
             else if (command_str == "HELP")
             {
-                cout << endl << "--- Branch DB Commands ---" << endl;
+                cout << endl
+                     << "--- Branch DB Commands ---" << endl;
                 cout << "SET <key> <value> EX <seconds> | ( Sets a key-value as provided & expiry [optional]. )" << endl;
                 cout << "GET <key> | ( Retrives value for the key provided. )" << endl;
                 cout << "DEL <key> | ( Discards key-value pair. )" << endl;
@@ -61,7 +62,8 @@ namespace cli
                 cout << "EXPIRE <key> EX <seconds> | ( Update TTL for an existing key. )" << endl;
                 cout << "PERSIST <key> | ( Removes the TTL of a key & sets TTL = 0 )" << endl;
                 cout << "EXIT" << endl;
-                cout << "-------------------------" << endl << endl;
+                cout << "-------------------------" << endl
+                     << endl;
             }
             else if (command_str == "SET")
             {
@@ -93,7 +95,7 @@ namespace cli
             }
             else
             {
-                cout << "[X] Command not allowed: " << command_str <<  " | Type 'HELP' for list of commands." << endl;
+                cout << "[X] Command not allowed: " << command_str << " | Type 'HELP' for list of commands." << endl;
             }
 
             cin.clear();

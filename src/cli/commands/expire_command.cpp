@@ -1,5 +1,5 @@
 #include <iostream>
-#include <branchdb/database.h>
+#include <branchdb/db/database.h>
 #include <branchdb/helper/helper.h>
 #include <vector>
 
@@ -8,7 +8,7 @@ using namespace chrono;
 
 namespace command
 {
-    void handleEXPIRE(branchdb::Database& db, vector<string> &args)
+    void handleEXPIRE(branchdb::Database &db, vector<string> &args)
     {
         // EXPIRE x EX 40
         if (args.size() >= 3)

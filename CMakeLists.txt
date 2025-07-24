@@ -34,12 +34,18 @@ set(SRC_TEST_FILES
     # Test
     src/test/main_test.cpp
 )
+    
+set(SRC_DB_FILES
+    # DB
+    src/db/value_metadata.cpp
+)
 
 # ALL SRC FILES
 set(ALL_SRC_FILES
     ${SRC_CORE_FILES}
     ${SRC_CLI_FILES}
     ${SRC_TEST_FILES}
+    ${SRC_DB_FILES}
 )
 
 # Add an Executabale target

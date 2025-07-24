@@ -1,5 +1,5 @@
 #include <iostream>
-#include <branchdb/database.h>
+#include <branchdb/db/database.h>
 #include <thread>
 #include <chrono>
 #include <optional>
@@ -9,7 +9,7 @@ using namespace chrono;
 
 namespace test
 {
-    void testDB(branchdb::Database& db)
+    void testDB(branchdb::Database &db)
     {
         // Test SET key
         cout << "Running Tests on BranchDB using defined operations..." << endl;

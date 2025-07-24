@@ -1,5 +1,5 @@
 #include <iostream>
-#include <branchdb/database.h>
+#include <branchdb/db/database.h>
 #include <optional>
 #include <vector>
 
@@ -8,7 +8,7 @@ using namespace chrono;
 
 namespace command
 {
-    void handleGET(branchdb::Database& db, vector<string>& args)
+    void handleGET(branchdb::Database &db, vector<string> &args)
     {
         if (args.size() >= 1)
         {

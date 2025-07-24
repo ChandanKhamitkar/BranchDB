@@ -1,5 +1,5 @@
 #include <iostream>
-#include <branchdb/database.h>
+#include <branchdb/db/database.h>
 #include <vector>
 
 using namespace std;
@@ -7,7 +7,7 @@ using namespace chrono;
 
 namespace command
 {
-    void handlePERSIST(branchdb::Database& db, vector<string>& args)
+    void handlePERSIST(branchdb::Database &db, vector<string> &args)
     {
         if (args.size() >= 1)
         {

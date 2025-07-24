@@ -2,6 +2,7 @@
 #define BRANCHDB_VALUE_METADATA_H
 
 #include <string>
+#include <optional>
 #include <chrono> // helps to work with time
 
 using namespace std;
@@ -18,19 +19,16 @@ namespace branchdb
         ValueMetaData(const string& val, seconds ttl = seconds(0)) : value(val), creation_time(steady_clock::now()), ttl_duration(ttl) {}
 
         // check IF key EXPIRED : Method
-        bool is_expired() const {
-            if(ttl_duration.count() == 0) return false; // if TTL = 0, the Key never expires
-            return (steady_clock::now() - creation_time) >= ttl_duration;
-        }
+        bool is_expired() const;
 
         // get remaining TTL in seconds : Method
-        long long remaining_ttl_seconds() const {
-            if(ttl_duration.count() == 0) return -1; // no expiry
-            auto elapsed = steady_clock::now() - creation_time;
-            auto remaining = ttl_duration - elapsed;
-            if(remaining.count() <= 0) return 0;
-            return duration_cast<seconds>(remaining).count();
-        }
+        long long remaining_ttl_seconds() const;
+
+        // Serialization - Data -> Binary Stream
+        void to_binary(ostream& os) const;
+
+        // Deserialization - Binary Stream -> Data
+        optional<ValueMetaData>  from_binary(istream& is) const;
     };
 
 }

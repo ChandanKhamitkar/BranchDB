@@ -1,7 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <optional>
-#include "branchdb/database.h";
+#include "branchdb/db/database.h";
 
 using namespace std;
 using namespace chrono;
@@ -110,10 +110,12 @@ namespace branchdb
 
         long long remaining = it->second.remaining_ttl_seconds();
         // Persist Key
-        if(remaining == -1){
+        if (remaining == -1)
+        {
             cout << "[OK] TTL: key " << key << " has no expiry" << endl;
         }
-        else {
+        else
+        {
             cout << "[OK] TTL: key " << key << " has " << remaining << " seconds remaining." << endl;
         }
         return remaining;

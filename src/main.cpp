@@ -1,4 +1,4 @@
-#include <branchdb/database.h>
+#include <branchdb/db/database.h>
 #include <branchdb/cli/start_cli.h>
 
 using namespace std;
