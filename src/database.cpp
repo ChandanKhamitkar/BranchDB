@@ -72,7 +72,8 @@ namespace branchdb
         }
         cout << "Branch DB initialized. Attempting recovery from " << LOG_FILE_NAME << "..." << endl;
         load_from_log();
-        cout << "Recovery complete. Database contains " << data_.size() << " keys." << endl << endl;
+        cout << "Recovery complete. Database contains " << data_.size() << " keys." << endl
+             << endl;
 
         // --- Start TTL cleanup thread ---
         ttl_cleanup_thread_ = make_unique<thread>(&Database::ttl_cleanup_loop, this);
@@ -406,4 +407,22 @@ namespace branchdb
             cout << "[X] PERSIST: key " << key << " not found." << endl;
         }
     }
+
+    // GETALL - Logic
+    void Database::getall()
+    {
+        shared_lock<shared_mutex> lock(data_mutex_);
+        if(data_.size() == 0) {
+            cout << "DB is empty | No keys exists." << endl;
+            return;
+        }
+
+        cout << "Logging ALL keys: " << endl;
+        for(auto& [key, _]: data_) {
+            cout << key << endl;
+        }
+        
+        return;
+    }
+
 }

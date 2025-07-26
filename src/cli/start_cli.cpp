@@ -64,6 +64,7 @@ namespace cli
                      << "--- Branch DB Commands ---" << endl;
                 cout << "SET <key> <value> EX <seconds> | ( Sets a key-value as provided & expiry [optional]. )" << endl;
                 cout << "GET <key> | ( Retrives value for the key provided. )" << endl;
+                cout << "GETALL | ( Logs list of keys exists. )" << endl;
                 cout << "DEL <key> | ( Discards key-value pair. )" << endl;
                 cout << "EXISTS <key> | ( Checks if a key exists. )" << endl;
                 cout << "TTL <key> | ( Returns the remaining time. )" << endl;
@@ -93,6 +94,9 @@ namespace cli
                 break;
             case helper::CommandEnums::PERSIST:
                 command::handlePERSIST(db, args);
+                break;
+            case helper::CommandEnums::GETALL:
+                command::handleGET_ALL(db, args);
                 break;
             default:
                 cout << "[X] Unhandled command: " << command_str << endl;

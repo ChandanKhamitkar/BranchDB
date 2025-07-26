@@ -25,6 +25,7 @@ set(SRC_CLI_FILES
     src/cli/commands/expire_command.cpp
     src/cli/commands/exists_command.cpp
     src/cli/commands/persist_command.cpp
+    src/cli/commands/getall_command.cpp
 
     # Commands helper
     src/cli/commands/helper/is_valid_seconds.cpp

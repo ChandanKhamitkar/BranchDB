@@ -15,6 +15,7 @@ namespace command
     void handleTTL(branchdb::Database &db, vector<string> &args);
     void handleEXPIRE(branchdb::Database &db, vector<string> &args);
     void handlePERSIST(branchdb::Database &db, vector<string> &args);
+    void handleGET_ALL(branchdb::Database &db, vector<string> &args);
 }
 
 #endif

@@ -1,0 +1,22 @@
+#include <iostream>
+#include <branchdb/db/database.h>
+#include <optional>
+#include <vector>
+
+using namespace std;
+using namespace chrono;
+
+namespace command
+{
+    void handleGET_ALL(branchdb::Database &db, vector<string> &args)
+    {
+        if (args.size() == 0)
+        {   
+            db.getall();
+        }
+        else
+        {
+            cout << "ERROR: GETALL command doesn't requires any arguments, Usage: GETALL" << endl;
+        }
+    }
+}

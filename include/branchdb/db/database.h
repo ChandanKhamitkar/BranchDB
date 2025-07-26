@@ -53,6 +53,9 @@ namespace branchdb
         // persist Method : Removes the TTL of a key.
         void persist(const string &key);
 
+        // GETALL Method: logs all keys
+        void Database::getall();
+
     private:
         // Core key-value store
         unordered_map<string, ValueMetaData> data_;
