@@ -21,7 +21,8 @@ namespace helper
         TTL,
         EXPIRE,
         PERSIST,
-        GETALL
+        GETALL,
+        FLUSH
     };
 
     string CmdEnumToString(CommandEnums cmd);

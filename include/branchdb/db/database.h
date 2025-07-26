@@ -56,6 +56,9 @@ namespace branchdb
         // GETALL Method: logs all keys
         void Database::getall();
 
+        // GETALL Method: logs all keys
+        void Database::flush();
+
     private:
         // Core key-value store
         unordered_map<string, ValueMetaData> data_;

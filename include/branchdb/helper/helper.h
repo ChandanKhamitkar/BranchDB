@@ -6,6 +6,7 @@
 namespace helper
 {
     long long is_valid_seconds(const string& s);
+    void trim_whitespace(string &str);
 } // namespace helper
 
 

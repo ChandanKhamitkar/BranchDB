@@ -20,6 +20,7 @@ namespace helper
         {EXPIRE, "EXPIRE"},
         {PERSIST, "PERSIST"},
         {GETALL, "GETALL"},
+        {FLUSH, "FLUSH"},
     };
     unordered_map<string, CommandEnums> string_command_map = {
         {"EXIT", EXIT},
@@ -33,6 +34,7 @@ namespace helper
         {"EXPIRE", EXPIRE},
         {"PERSIST", PERSIST},
         {"GETALL", GETALL},
+        {"FLUSH", FLUSH},
     };
 
     string CmdEnumToString(CommandEnums cmd)
@@ -42,7 +44,6 @@ namespace helper
 
     optional<CommandEnums> CmdStringToEnum(const string &cmdStr)
     {
-        cout << cmdStr << endl;
         auto it = string_command_map.find(cmdStr);
         if (it != string_command_map.end())
         {

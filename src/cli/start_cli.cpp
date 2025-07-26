@@ -98,8 +98,11 @@ namespace cli
             case helper::CommandEnums::GETALL:
                 command::handleGET_ALL(db, args);
                 break;
+            case helper::CommandEnums::FLUSH:
+                command::handleFLUSH(db, args);
+                break;
             default:
-                cout << "[X] Unhandled command: " << command_str << endl;
+                cout << "[X] Invalid command: " << command_str << " | Type 'HELP' for list of commands." << endl;
                 break;
             }
             cin.clear();

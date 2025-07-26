@@ -130,6 +130,7 @@ namespace branchdb
                         cerr << "ERROR: Corrupted log entry (missing metadata for SET op) for key: " << key << endl;
                         break;
                     }
+                    
                     internal_set(key, *metadata_opt);
                 }
                 else if (op_code == DEL_OP)
@@ -412,17 +413,57 @@ namespace branchdb
     void Database::getall()
     {
         shared_lock<shared_mutex> lock(data_mutex_);
-        if(data_.size() == 0) {
+        if (data_.empty())
+        {
             cout << "DB is empty | No keys exists." << endl;
             return;
         }
 
         cout << "Logging ALL keys: " << endl;
-        for(auto& [key, _]: data_) {
-            cout << key << endl;
+        for (auto &[key, _] : data_)
+        {   
+            if(_.is_expired()){
+                cout << key << " (expired)." << endl;
+            }
+            else cout << key << endl;
         }
-        
+        cout << "Total keys count: " << data_.size() << endl;
+
         return;
     }
 
+    // FLUSH - Logic
+    void Database::flush()
+    {
+        unique_lock<shared_mutex> lock(data_mutex_);
+
+        if(data_.empty()){
+            cout << "Zero keys exists to FLUSH." << endl;
+            return;
+        }
+
+        if (!is_recovering_)
+        {
+            try
+            {
+                for (const auto &[key, _] : data_)
+                {
+                    log_file_out_.put(DEL_OP);
+                    write_string_to_log(log_file_out_, key);
+                }
+                log_file_out_.flush();
+            }
+            catch (const runtime_error &e)
+            {
+                cerr << "ERROR: Failed to log FLUSH operation. " << e.what() << endl;
+                return;
+            }
+        }
+
+        size_t deleted_count = data_.size();
+        data_.clear();
+
+        cout << "[OK] FLUSH: " << deleted_count << " key(s) deleted." << endl;
+        return;
+    }
 }
