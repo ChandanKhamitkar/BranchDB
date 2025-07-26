@@ -28,6 +28,7 @@ set(SRC_CLI_FILES
 
     # Commands helper
     src/cli/commands/helper/is_valid_seconds.cpp
+    src/cli/commands/helper/enum_parse.cpp
 )
     
 set(SRC_TEST_FILES

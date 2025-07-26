@@ -2,11 +2,13 @@
 #include <branchdb/db/database.h>
 #include <branchdb/test/main_test.h>
 #include <branchdb/cli/command.h>
+#include <branchdb/helper/enum_parser.h>
 #include <thread>
 #include <chrono>
 #include <optional>
 #include <sstream>
 #include <vector>
+#include <string>
 
 using namespace std;
 using namespace chrono;
@@ -41,17 +43,23 @@ namespace cli
                 args.push_back(arg);
             }
 
-            if (command_str == "EXIT")
+            auto cmdEnumOpt = helper::CmdStringToEnum(command_str);
+
+            if (!cmdEnumOpt.has_value())
             {
+                cout << "[X] Command not allowed: " << command_str << " | Type 'HELP' for list of commands." << endl;
+                continue;
+            }
+
+            switch (cmdEnumOpt.value())
+            {
+            case helper::CommandEnums::EXIT:
                 cout << "Exiting BranchDB CLI. GoodBye!" << endl;
-                break;
-            }
-            else if (command_str == "TEST")
-            {
+                return;
+            case helper::CommandEnums::TEST:
                 test::testDB(db);
-            }
-            else if (command_str == "HELP")
-            {
+                break;
+            case helper::CommandEnums::HELP:
                 cout << endl
                      << "--- Branch DB Commands ---" << endl;
                 cout << "SET <key> <value> EX <seconds> | ( Sets a key-value as provided & expiry [optional]. )" << endl;
@@ -64,40 +72,32 @@ namespace cli
                 cout << "EXIT" << endl;
                 cout << "-------------------------" << endl
                      << endl;
-            }
-            else if (command_str == "SET")
-            {
+                break;
+            case helper::CommandEnums::SET:
                 command::handleSET(db, args);
-            }
-            else if (command_str == "GET")
-            {
+                break;
+            case helper::CommandEnums::GET:
                 command::handleGET(db, args);
-            }
-            else if (command_str == "DEL")
-            {
+                break;
+            case helper::CommandEnums::DEL:
                 command::handleDEL(db, args);
-            }
-            else if (command_str == "EXISTS")
-            {
+                break;
+            case helper::CommandEnums::EXISTS:
                 command::handleEXISTS(db, args);
-            }
-            else if (command_str == "TTL")
-            {
+                break;
+            case helper::CommandEnums::TTL:
                 command::handleTTL(db, args);
-            }
-            else if (command_str == "EXPIRE")
-            {
+                break;
+            case helper::CommandEnums::EXPIRE:
                 command::handleEXPIRE(db, args);
-            }
-            else if (command_str == "PERSIST")
-            {
+                break;
+            case helper::CommandEnums::PERSIST:
                 command::handlePERSIST(db, args);
+                break;
+            default:
+                cout << "[X] Unhandled command: " << command_str << endl;
+                break;
             }
-            else
-            {
-                cout << "[X] Command not allowed: " << command_str << " | Type 'HELP' for list of commands." << endl;
-            }
-
             cin.clear();
         }
     }
