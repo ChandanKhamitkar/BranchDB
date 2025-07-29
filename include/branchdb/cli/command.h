@@ -7,7 +7,6 @@
 
 namespace command
 {
-
     void handleSET(branchdb::Database &db, vector<string> &args);
     void handleGET(branchdb::Database &db, vector<string> &args);
     void handleDEL(branchdb::Database &db, vector<string> &args);
@@ -17,6 +16,7 @@ namespace command
     void handlePERSIST(branchdb::Database &db, vector<string> &args);
     void handleGET_ALL(branchdb::Database &db, vector<string> &args);
     void handleFLUSH(branchdb::Database &db, vector<string> &args);
+    void handleINFO(branchdb::Database &db, vector<string> &args);
 }
 
 #endif

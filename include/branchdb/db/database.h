@@ -59,6 +59,9 @@ namespace branchdb
         // GETALL Method: logs all keys
         void Database::flush();
 
+        // INFO: Says about ( uptime, Number of keys, etc..)
+        void Database::info();
+
     private:
         // Core key-value store
         unordered_map<string, ValueMetaData> data_;
@@ -72,6 +75,8 @@ namespace branchdb
         // writing to log
         ofstream log_file_out_;
         bool is_recovering_ = false;
+
+        steady_clock::time_point start_time_;
 
         // internal SET
         void internal_set(const string &key, const ValueMetaData &metadata);

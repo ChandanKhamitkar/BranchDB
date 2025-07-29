@@ -27,6 +27,7 @@ set(SRC_CLI_FILES
     src/cli/commands/persist_command.cpp
     src/cli/commands/getall_command.cpp
     src/cli/commands/flush_command.cpp
+    src/cli/commands/info_command.cpp
 
     # Commands helper
     src/cli/commands/helper/is_valid_seconds.cpp

@@ -106,6 +106,9 @@ namespace cli
             case helper::CommandEnums::FLUSH:
                 command::handleFLUSH(db, args);
                 break;
+            case helper::CommandEnums::INFO:
+                command::handleINFO(db, args);
+                break;
             default:
                 cout << "[X] Invalid command: " << command_str << " | Type 'HELP' for list of commands." << endl;
                 break;

@@ -22,7 +22,8 @@ namespace helper
         EXPIRE,
         PERSIST,
         GETALL,
-        FLUSH
+        FLUSH,
+        INFO
     };
 
     string CmdEnumToString(CommandEnums cmd);

@@ -82,6 +82,8 @@ namespace branchdb
                                                                                                 
 )" << endl;
         cout << "Branch DB initialized. Attempting recovery from..." << endl;
+        
+        start_time_ = steady_clock::now();
         load_from_log();
         cout << "[OK] Recovery complete. Database contains."<< endl
              << endl;
@@ -478,5 +480,21 @@ namespace branchdb
 
         cout << "[OK] FLUSH: " << deleted_count << " key(s) deleted." << endl;
         return;
+    }
+
+    // INFO - Logic
+    void Database::info()
+    {
+        shared_lock<shared_mutex> lock(data_mutex_);
+        size_t data_size = data_.size();
+
+        auto uptime_duration = steady_clock::now() - start_time_;
+        auto uptime_seconds = duration_cast<seconds>(uptime_duration).count();
+
+        cout << "--- Branch DB Info ---" << endl;
+        cout << "Total Keys: " << data_size << endl;
+        cout << "Uptime: " << uptime_seconds << " seconds" << endl;
+        cout << "TTL Scan Interval: " << TTL_SCAN_INTERVAL_.count() << " seconds" << endl;
+        cout << "-------------------------" << endl;
     }
 }
