@@ -3,6 +3,7 @@
 #include <branchdb/test/main_test.h>
 #include <branchdb/cli/command.h>
 #include <branchdb/helper/enum_parser.h>
+#include <branchdb/helper/helper.h>
 #include <thread>
 #include <chrono>
 #include <optional>
@@ -24,6 +25,8 @@ namespace cli
         {
             cout << "> ";
             getline(cin, cmd_line);
+            helper::trim_whitespace(cmd_line);
+            
             stringstream ss(cmd_line);
             string command_str;
             ss >> command_str; // First word of Command

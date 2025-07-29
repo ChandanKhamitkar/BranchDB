@@ -16,7 +16,7 @@ namespace command
             string key = args[0];
             string value = args[1];
             seconds ttl_duration = seconds(0);
-            if (args.size() >= 4 && args[2] == "EX")
+            if (args.size() >= 4 && (args[2] == "EX" || args[2] == "ex"))
             {
                 long long ttl_val = helper::is_valid_seconds(args[3]);
                 if (ttl_val > 0)
