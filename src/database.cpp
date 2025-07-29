@@ -1,5 +1,5 @@
-#include "branchdb/db/value_metadata.h";
-#include "branchdb/db/database.h";
+#include "branchdb/db/value_metadata.h"
+#include "branchdb/db/database.h"
 #include <iostream>
 #include <chrono>
 #include <fstream>
@@ -52,7 +52,9 @@ namespace branchdb
     // 📍--- [Private] Internal SET | DEL operation ---
     void Database::internal_set(const string &key, const ValueMetaData &metadata)
     {
-        data_[key] = metadata;
+        if(!metadata.is_expired()) {
+            data_[key] = metadata;
+        }
     }
 
     bool Database::internal_del(const string &key)
@@ -70,9 +72,18 @@ namespace branchdb
         {
             throw runtime_error("Failed to open log file for writing: " + LOG_FILE_NAME);
         }
-        cout << "Branch DB initialized. Attempting recovery from " << LOG_FILE_NAME << "..." << endl;
+        cout << R"(
+ ____                       _       _____  ____  
+|  _ \                     | |     |  __ \|  _ \ 
+| |_) |_ __ __ _ _ __   ___| |__   | |  | | |_) |
+|  _ <| '__/ _` | '_ \ / __| '_ \  | |  | |  _ < 
+| |_) | | | (_| | | | | (__| | | | | |__| | |_) |
+|____/|_|  \__,_|_| |_|\___|_| |_| |_____/|____/ 
+                                                                                                
+)" << endl;
+        cout << "Branch DB initialized. Attempting recovery from..." << endl;
         load_from_log();
-        cout << "Recovery complete. Database contains " << data_.size() << " keys." << endl
+        cout << "[OK] Recovery complete. Database contains."<< endl
              << endl;
 
         // --- Start TTL cleanup thread ---
@@ -130,7 +141,7 @@ namespace branchdb
                         cerr << "ERROR: Corrupted log entry (missing metadata for SET op) for key: " << key << endl;
                         break;
                     }
-                    
+
                     internal_set(key, *metadata_opt);
                 }
                 else if (op_code == DEL_OP)
@@ -241,7 +252,6 @@ namespace branchdb
         if (it->second.is_expired())
         {
             cout << "[X] GET: key " << key << " found but expired. Deleting" << endl;
-            data_.erase(it);
             return nullopt;
         }
 
@@ -421,11 +431,13 @@ namespace branchdb
 
         cout << "Logging ALL keys: " << endl;
         for (auto &[key, _] : data_)
-        {   
-            if(_.is_expired()){
+        {
+            if (_.is_expired())
+            {
                 cout << key << " (expired)." << endl;
             }
-            else cout << key << endl;
+            else
+                cout << key << endl;
         }
         cout << "Total keys count: " << data_.size() << endl;
 
@@ -437,7 +449,8 @@ namespace branchdb
     {
         unique_lock<shared_mutex> lock(data_mutex_);
 
-        if(data_.empty()){
+        if (data_.empty())
+        {
             cout << "Zero keys exists to FLUSH." << endl;
             return;
         }

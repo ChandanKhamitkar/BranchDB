@@ -70,6 +70,8 @@ namespace cli
                 cout << "TTL <key> | ( Returns the remaining time. )" << endl;
                 cout << "EXPIRE <key> EX <seconds> | ( Update TTL for an existing key. )" << endl;
                 cout << "PERSIST <key> | ( Removes the TTL of a key & sets TTL = 0 )" << endl;
+                cout << "FLUSH | ( Asks confirmation before deleting all keys. )" << endl;
+                cout << "FLUSH FORCE | ( Delete all keys directly. )" << endl;
                 cout << "EXIT" << endl;
                 cout << "-------------------------" << endl
                      << endl;
