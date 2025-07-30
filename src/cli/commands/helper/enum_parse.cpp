@@ -1,3 +1,15 @@
+/**
+ * BranchDB – An in-memory key-value database
+ * with TTL, disk persistence.
+ *
+ * © 2025 KHAMITKAR SAI CHANDAN
+ * Licensed under the Apache License, Version 2.0.
+ * You may obtain a copy at:
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * You must retain this header in any redistribution or modification.
+ */
+
 #include "branchdb/helper/enum_parser.h"
 #include <iostream>
 #include <unordered_map>
