@@ -10,17 +10,16 @@
  * You must retain this header in any redistribution or modification.
  */
 
-#ifndef BRANCHDB_HELPER_H
-#define BRANCHDB_HELPER_H
-
+#ifndef BRANCHDB_SOCKET_H
+#define BRANCHDB_SOCKET_H
+#include <boost/asio.hpp>
+#include <branchdb/db/database.h>
 #include <string>
 
-namespace helper
+namespace persistent_connect
 {
-    long long is_valid_seconds(const string& s);
-    void trim_whitespace(string &str);
-    void command_parser(branchdb::Database &db, string& cmd_line);
-} // namespace helper
+    void handle_client(boost::asio::ip::tcp::socket socket, branchdb::Database& db);
+} // namespace persistent_connect
 
 
 #endif

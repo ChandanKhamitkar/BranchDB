@@ -12,7 +12,10 @@
 
 #include <branchdb/db/database.h>
 #include <branchdb/cli/start_cli.h>
-#include <csignal>>
+#include <branchdb/persistent_connect/persistent_connect.h>
+#include <csignal>
+#include <thread>
+#include <boost/asio.hpp>
 
 using namespace std;
 using namespace chrono;
@@ -25,8 +28,22 @@ void handleSigint(int signal)
 
 int main()
 {
-    signal(SIGINT, handleSigint);
     branchdb::Database db;
-    cli::startCLI(db);
+    signal(SIGINT, handleSigint);
+    boost::asio::io_context io_context;
+    boost::asio::ip::tcp::acceptor acceptor(io_context, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 1981));
+
+    cout << "TCP server started, listening at port: 1981" << endl;
+
+    // Open to listen from clients
+    while(true){
+        boost::asio::ip::tcp::socket socket(io_context);
+        acceptor.accept(socket);
+
+        cout << "New connection established : " << socket.remote_endpoint() << endl;
+        thread(persistent_connect::handle_client, move(socket), ref(db)).detach();
+    }
+
+    // cli::startCLI(db);
     return 0;
 }

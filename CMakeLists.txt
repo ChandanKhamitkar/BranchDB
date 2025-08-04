@@ -28,11 +28,16 @@ set(SRC_CLI_FILES
     src/cli/commands/getall_command.cpp
     src/cli/commands/flush_command.cpp
     src/cli/commands/info_command.cpp
+    src/cli/commands/help_command.cpp
 
     # Commands helper
     src/cli/commands/helper/is_valid_seconds.cpp
     src/cli/commands/helper/enum_parse.cpp
     src/cli/commands/helper/trim_whitespaces.cpp
+    src/cli/commands/helper/command_parser.cpp
+
+    # Persistent Connect
+    src/persistent_connect/handle_client.cpp
 )
     
 set(SRC_TEST_FILES
@@ -56,4 +61,6 @@ set(ALL_SRC_FILES
 # Add an Executabale target
 add_executable(BranchDB ${ALL_SRC_FILES})
 
-target_include_directories(BranchDB PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(BranchDB PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)

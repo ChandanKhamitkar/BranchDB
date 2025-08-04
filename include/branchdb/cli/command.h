@@ -29,6 +29,7 @@ namespace command
     void handleGET_ALL(branchdb::Database &db, vector<string> &args);
     void handleFLUSH(branchdb::Database &db, vector<string> &args);
     void handleINFO(branchdb::Database &db, vector<string> &args);
+    void handleHELP(vector<string> &args);
 }
 
 #endif
