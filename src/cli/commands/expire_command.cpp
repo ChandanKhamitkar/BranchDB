@@ -14,13 +14,14 @@
 #include <branchdb/db/database.h>
 #include <branchdb/helper/helper.h>
 #include <vector>
+#include <branchdb/db/response_metadata.h>
 
 using namespace std;
 using namespace chrono;
 
 namespace command
 {
-    void handleEXPIRE(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleEXPIRE(branchdb::Database &db, vector<string> &args)
     {
         // EXPIRE x EX 40
         if (args.size() >= 3)
@@ -37,20 +38,25 @@ namespace command
                 }
                 else
                 {
-                    cout << "ERROR: Invalid TTL value provided, must be a non-negative integer." << endl;
-                    return;
+                    string err_res = "Invalid TTL value provided, must be a non-negative integer.";
+                    cout << "ERROR: " << err_res << endl;
+                    return branchdb::make_response(400, false, "[EXPIRE] " + err_res);
                 }
-
-                db.expire(key, ttl_duration);
+                
+                return db.expire(key, ttl_duration);
             }
             else
             {
-                cout << "ERROR: Invalid EXPIRE command format: Too many arguments passed!, Usage: EXPIRE <key> EX <seconds>" << endl;
+                string err_res = "Invalid EXPIRE command format: Too many arguments passed!, Usage: EXPIRE <key> EX <seconds>";
+                cout << "ERROR: " << err_res << endl;
+                return branchdb::make_response(400, false, "[EXPIRE] " + err_res);
             }
         }
         else
         {
-            cout << "ERROR: EXPIRE command atleast requires <key>, Usage: EXPIRE <key> EX <seconds>" << endl;
+            string err_res = "EXPIRE command atleast requires <key>, Usage: EXPIRE <key> EX <seconds>";
+            cout << "ERROR: " << err_res << endl;
+            return branchdb::make_response(400, false, "[EXPIRE] " + err_res);
         }
     }
 }

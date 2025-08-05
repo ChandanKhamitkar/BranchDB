@@ -15,13 +15,14 @@
 #include <branchdb/helper/helper.h>
 #include <chrono>
 #include <vector>
+#include <branchdb/db/response_metadata.h>
 
 using namespace std;
 using namespace chrono;
 
 namespace command
 {
-    void handleSET(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleSET(branchdb::Database &db, vector<string> &args)
     {
         if (args.size() >= 2)
         {
@@ -37,20 +38,25 @@ namespace command
                 }
                 else
                 {
-                    cout << "ERROR: Invalid TTL value provided, must be a non-negative integer." << endl;
-                    return;
+                    string err_res = "Invalid TTL value provided, must be a non-negative integer.";
+                    cout << "ERROR: " << err_res << endl;
+                    return branchdb::make_response(400, false, "[SET] " + err_res);
                 }
             }
             else if (args.size() > 2)
-            {
-                cout << "ERROR: Invalid SET command format, Use SET <key> <value> EX <seconds>" << endl;
-                return;
+            {   
+                string err_res = "Invalid SET command format, Use SET <key> <value> EX <seconds>";
+                cout << "ERROR: " << err_res << endl;
+                return branchdb::make_response(400, false, "[SET] " + err_res);
             }
-            db.set(key, value, ttl_duration);
+            
+            return db.set(key, value, ttl_duration);
         }
         else
-        {
-            cout << "ERROR: SET command atleast requires <key> and <value>, Usage: SET <key> <value> EX <seconds>" << endl;
+        {   
+            string err_res = "SET command atleast requires <key> and <value>, Usage: SET <key> <value> EX <seconds>";
+            cout << "ERROR: " << err_res << endl;
+            return branchdb::make_response(400, false, "[SET] " + err_res);
         }
     }
 }

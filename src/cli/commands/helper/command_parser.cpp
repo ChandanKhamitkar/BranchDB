@@ -24,7 +24,7 @@ using namespace std;
 
 namespace helper
 {
-    void command_parser(branchdb::Database &db, string& cmd_line)
+    branchdb::ResponseMetaData command_parser(branchdb::Database &db, string &cmd_line)
     {
         helper::trim_whitespace(cmd_line);
 
@@ -52,53 +52,54 @@ namespace helper
         if (!cmdEnumOpt.has_value())
         {
             cout << "[X] Command not allowed: " << command_str << " | Type 'HELP' for list of commands." << endl;
-            return;
+            return branchdb::make_response(400, false, "Invalid command: " + command_str + " | Type 'HELP' for list of commands.");
         }
 
         switch (cmdEnumOpt.value())
         {
         case helper::CommandEnums::EXIT:
             cout << "Exiting BranchDB CLI. GoodBye!" << endl;
-            exit(0);
+            return branchdb::make_response(200, true, "Exiting BranchDB CLI. GoodBye!");
+            // exit(0);
         case helper::CommandEnums::TEST:
             test::testDB(db);
-            break;
+            return branchdb::make_response(200, true, "DONE with testing DB");
         case helper::CommandEnums::HELP:
-            command::handleHELP(args);
+            return command::handleHELP(args);
             break;
         case helper::CommandEnums::SET:
-            command::handleSET(db, args);
+            return command::handleSET(db, args);
             break;
         case helper::CommandEnums::GET:
-            command::handleGET(db, args);
+            return command::handleGET(db, args);
             break;
         case helper::CommandEnums::DEL:
-            command::handleDEL(db, args);
+            return command::handleDEL(db, args);
             break;
         case helper::CommandEnums::EXISTS:
-            command::handleEXISTS(db, args);
+            return command::handleEXISTS(db, args);
             break;
         case helper::CommandEnums::TTL:
-            command::handleTTL(db, args);
+            return command::handleTTL(db, args);
             break;
         case helper::CommandEnums::EXPIRE:
-            command::handleEXPIRE(db, args);
+            return command::handleEXPIRE(db, args);
             break;
         case helper::CommandEnums::PERSIST:
-            command::handlePERSIST(db, args);
+            return command::handlePERSIST(db, args);
             break;
         case helper::CommandEnums::GETALL:
-            command::handleGET_ALL(db, args);
+            return command::handleGET_ALL(db, args);
             break;
         case helper::CommandEnums::FLUSH:
-            command::handleFLUSH(db, args);
+            return command::handleFLUSH(db, args);
             break;
         case helper::CommandEnums::INFO:
-            command::handleINFO(db, args);
+            return command::handleINFO(db, args);
             break;
         default:
             cout << "[X] Invalid command: " << command_str << " | Type 'HELP' for list of commands." << endl;
-            break;
+            return branchdb::make_response(400, false, "Invalid command: " + command_str + " | Type 'HELP' for list of commands.");
         }
     }
 

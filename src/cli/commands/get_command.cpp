@@ -14,13 +14,14 @@
 #include <branchdb/db/database.h>
 #include <optional>
 #include <vector>
+#include <branchdb/db/response_metadata.h>
 
 using namespace std;
 using namespace chrono;
 
 namespace command
 {
-    void handleGET(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleGET(branchdb::Database &db, vector<string> &args)
     {
         if (args.size() >= 1)
         {
@@ -28,16 +29,20 @@ namespace command
 
             if (args.size() == 1)
             {
-                optional<string> value = db.get(key);
+                return db.get(key);
             }
             else if (args.size() > 1)
             {
-                cout << "ERROR: Invalid GET command format: Too many arguments passed!, Usage: GET <key>" << endl;
+                string err_res = "Invalid GET command format: Too many arguments passed!, Usage: GET <key>";
+                cout << "ERROR: " << err_res<< endl;
+                return branchdb::make_response(400, false, "[GET] " + err_res);
             }
         }
         else
         {
-            cout << "ERROR: GET command atleast requires <key>, Usage: GET <key>" << endl;
+            string err_res = "GET command atleast requires <key>, Usage: GET <key>";
+            cout << "ERROR: " << err_res << endl;
+            return branchdb::make_response(400, false, "[GET] " + err_res);
         }
     }
 }

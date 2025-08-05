@@ -13,13 +13,14 @@
 #include <iostream>
 #include <branchdb/db/database.h>
 #include <vector>
+#include <branchdb/db/response_metadata.h>
 
 using namespace std;
 using namespace chrono;
 
 namespace command
 {
-    void handleEXISTS(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleEXISTS(branchdb::Database &db, vector<string> &args)
     {
         if (args.size() >= 1)
         {
@@ -27,16 +28,20 @@ namespace command
 
             if (args.size() == 1)
             {
-                db.exists(key);
+                return db.exists(key);
             }
             else if (args.size() > 1)
             {
-                cout << "ERROR: Invalid EXISTS command format: Too many arguments passed!, Usage: EXISTS <key>" << endl;
+                string err_res = "Invalid EXISTS command format: Too many arguments passed!, Usage: EXISTS <key>";
+                cout << "ERROR: " << err_res << endl;
+                return branchdb::make_response(400, false, "[EXISTS] " + err_res);
             }
         }
         else
         {
-            cout << "ERROR: EXISTS command atleast requires <key>, Usage: EXISTS <key>" << endl;
+            string err_res = "EXISTS command atleast requires <key>, Usage: EXISTS <key>";
+            cout << "ERROR: " << err_res << endl;
+            return branchdb::make_response(400, false, "[EXISTS] " + err_res);
         }
     }
 }

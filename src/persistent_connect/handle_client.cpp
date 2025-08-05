@@ -12,8 +12,10 @@
 
 #include <iostream>
 #include <branchdb/db/database.h>
+#include <branchdb/db/response_metadata.h>
 #include <branchdb/helper/helper.h>
 #include <thread>
+#include <optional>
 #include <boost/asio.hpp>
 
 using namespace std;
@@ -34,7 +36,8 @@ namespace persistent_connect
                 cout << "Client disconnected gracefully: " << error.message() << endl;
                 break;
             }
-            else if(error){
+            else if (error)
+            {
                 cerr << "Error reading from client: " << error.message() << endl;
                 break;
             }
@@ -44,7 +47,22 @@ namespace persistent_connect
             string payload;
             getline(is, payload);
             cout << "[CLIENT] Buffer data recieved: " << payload << endl;
-            helper::command_parser(db, payload);
+            branchdb::ResponseMetaData response_obj = helper::command_parser(db, payload);
+
+            stringstream ss;
+            response_obj.to_binary(ss);
+            string serialized_response = ss.str();
+
+            serialized_response += '\n';
+
+            boost::system::error_code write_error;
+            boost::asio::write(socket, boost::asio::buffer(serialized_response), write_error);
+
+            if (write_error)
+            {
+                cerr << "Error writing response to client: " << write_error.message() << endl;
+                break;
+            }
         }
     }
 }

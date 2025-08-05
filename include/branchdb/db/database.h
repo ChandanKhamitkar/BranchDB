@@ -24,6 +24,7 @@
 #include <thread>
 #include <atomic>
 #include <shared_mutex>
+#include "response_metadata.h"
 
 using namespace std;
 using namespace chrono;
@@ -45,34 +46,34 @@ namespace branchdb
         ~Database();
 
         // SET Method
-        bool set(const string &key, const string &value, seconds ttl_duration = seconds(0));
+        branchdb::ResponseMetaData set(const string &key, const string &value, seconds ttl_duration = seconds(0));
 
         // GET Method
-        optional<string> get(const string &key);
+        branchdb::ResponseMetaData get(const string &key);
 
         // DEL Method
-        bool del(const string &key);
+        branchdb::ResponseMetaData del(const string &key);
 
         // Exists Method : Checks if a key exists
-        bool exists(const string &key);
+        branchdb::ResponseMetaData exists(const string &key);
 
         // TTL Method : Returns the remaining time
-        long long ttl(const string &key);
+        branchdb::ResponseMetaData ttl(const string &key);
 
         // expire Method : Sets a new TTL for an existing key.
-        bool expire(const string &key, seconds ttl_duration);
+        branchdb::ResponseMetaData expire(const string &key, seconds ttl_duration);
 
         // persist Method : Removes the TTL of a key.
-        void persist(const string &key);
+        branchdb::ResponseMetaData persist(const string &key);
 
         // GETALL Method: logs all keys
-        void Database::getall();
+        branchdb::ResponseMetaData Database::getall();
 
         // GETALL Method: logs all keys
-        void Database::flush();
+        branchdb::ResponseMetaData Database::flush();
 
         // INFO: Says about ( uptime, Number of keys, etc..)
-        void Database::info();
+        branchdb::ResponseMetaData Database::info();
 
     private:
         // Core key-value store

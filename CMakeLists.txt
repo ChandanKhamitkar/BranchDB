@@ -48,6 +48,7 @@ set(SRC_TEST_FILES
 set(SRC_DB_FILES
     # DB
     src/db/value_metadata.cpp
+    src/db/response_metadata.cpp
 )
 
 # ALL SRC FILES

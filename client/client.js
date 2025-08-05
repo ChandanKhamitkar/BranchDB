@@ -19,8 +19,38 @@ client.on("connect", () => {
 });
 
 client.on("data", (data) => {
-  const serverResponse = data.toString().trim();
-  console.log(`[SERVER] ${serverResponse}`);
+  console.log(`\n[RAW DATA] Received ${data.length} bytes:`);
+  console.log(`[RAW DATA] Hex: ${data.toString("hex")}`);
+
+  let offset = 0;
+
+  const status_code = data.readInt8(offset);
+  offset += 1;
+
+  const success = data.readInt8(offset);
+  offset += 1;
+
+  const message_len = data.readUint32LE(offset);
+  offset += 4;
+
+  const message = data.toString("utf8", offset, offset + message_len);
+  offset += message_len;
+
+  const payload_len = data.readUint32LE(offset);
+  offset += 4;
+
+  const payload = data.toString("utf8", offset, offset + payload_len);
+  offset += payload_len;
+
+  const response = {
+    statusCode: status_code,
+    success: success,
+    message: message,
+    payload: payload,
+  };
+
+  console.log(`[PARSED] Received Response:`, response);
+
   rl.prompt();
 });
 

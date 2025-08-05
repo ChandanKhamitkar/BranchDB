@@ -13,21 +13,24 @@
 #include <iostream>
 #include <branchdb/db/database.h>
 #include <vector>
+#include "branchdb/db/response_metadata.h"
 
 using namespace std;
 using namespace chrono;
 
 namespace command
 {
-    void handleINFO(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleINFO(branchdb::Database &db, vector<string> &args)
     {
         if (args.size() == 0)
         {
-            db.info();
+            return db.info();
         }
         else
         {
-            cout << "ERROR: Invalid INFO command usage, Valid Usage: INFO" << endl;
+            string err_res = "Invalid INFO command usage, Valid Usage: INFO";
+            cout << "ERROR: " << err_res << endl;
+            return branchdb::make_response(400, false, "[INFO] " + err_res);
         }
     }
 }

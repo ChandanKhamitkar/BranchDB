@@ -14,6 +14,7 @@
 #include <branchdb/db/database.h>
 #include <branchdb/helper/helper.h>
 #include <vector>
+#include <branchdb/db/response_metadata.h>
 
 using namespace std;
 using namespace chrono;
@@ -28,7 +29,7 @@ namespace command
         NO = 'n',
     };
 
-    void handleFLUSH(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleFLUSH(branchdb::Database &db, vector<string> &args)
     {
         if (args.size() == 0)
         {
@@ -44,23 +45,26 @@ namespace command
                 if (response == ConfirmationCode::YES)
                 {
                     cout << "Flushing all keys..." << endl;
-                    db.flush();
+                    return db.flush();
                 }
                 else if (response == ConfirmationCode::NO)
                 {
-                    cout << "User denied flushing, Aborted." << endl;
-                    return;
+                    string res = "User denied flushing, Aborted.";
+                    cout << res << endl;
+                    return branchdb::make_response(200, true, "[FLUSH] " + res);
                 }
                 else
                 {
-                    cout << "Invalid confirmation received. Type only (y/n)." << endl;
-                    return;
+                    string res = "Invalid confirmation received. Type only (y/n).";
+                    cout << res << endl;
+                    return branchdb::make_response(400, false, "[FLUSH] " + res);
                 }
             }
             else
             {
-                cout << "Confirmation didn't received. Aborted." << endl;
-                return;
+                string res = "Confirmation didn't received. Aborted.";
+                cout << res << endl;
+                return branchdb::make_response(400, false, "[FLUSH] " + res);
             }
         }
         else if (args.size() >= 1)
@@ -76,16 +80,20 @@ namespace command
             if (args.size() == 1 && upper_cmd == "FORCE")
             {
                 cout << "Flushing all keys..." << endl;
-                db.flush();
+                return db.flush();
             }
             else if (args.size() > 1)
             {
-                cout << "ERROR: Invalid FLUSH command format: Too many arguments passed!, Usage: FLUSH or FLUSH FORCE" << endl;
+                string err_res = "Invalid FLUSH command format: Too many arguments passed!, Usage: FLUSH or FLUSH FORCE";
+                cout << "ERROR: " << err_res << endl;
+                return branchdb::make_response(400, false, "[FLUSH] " + err_res);
             }
         }
         else
         {
-            cout << "ERROR: Invalid FLUSH command usage, Usage: FLUSH or FLUSH FORCE" << endl;
+            string err_res = "Invalid FLUSH command usage, Usage: FLUSH or FLUSH FORCE";
+            cout << "ERROR: " << err_res << endl;
+            return branchdb::make_response(400, false, "[FLUSH] " + err_res);
         }
     }
 }

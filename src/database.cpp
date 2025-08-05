@@ -12,6 +12,7 @@
 
 #include "branchdb/db/value_metadata.h"
 #include "branchdb/db/database.h"
+#include "branchdb/db/response_metadata.h"
 #include <iostream>
 #include <chrono>
 #include <fstream>
@@ -64,7 +65,8 @@ namespace branchdb
     // 📍--- [Private] Internal SET | DEL operation ---
     void Database::internal_set(const string &key, const ValueMetaData &metadata)
     {
-        if(!metadata.is_expired()) {
+        if (!metadata.is_expired())
+        {
             data_[key] = metadata;
         }
     }
@@ -94,10 +96,10 @@ namespace branchdb
                                                                                                 
 )" << endl;
         cout << "Branch DB initialized. Attempting recovery from..." << endl;
-        
+
         start_time_ = steady_clock::now();
         load_from_log();
-        cout << "[OK] Recovery complete. Database contains."<< endl
+        cout << "[OK] Recovery complete. Database contains." << endl
              << endl;
 
         // --- Start TTL cleanup thread ---
@@ -224,7 +226,7 @@ namespace branchdb
     // 📍--- Public Operations | CLI Commands Logics ---
 
     // SET - Logic
-    bool Database::set(const string &key, const string &value, seconds ttl_duration)
+    branchdb::ResponseMetaData Database::set(const string &key, const string &value, seconds ttl_duration)
     {
         ValueMetaData metadata(value, ttl_duration);
         unique_lock<shared_mutex> lock(data_mutex_);
@@ -241,16 +243,16 @@ namespace branchdb
             catch (const runtime_error &e)
             {
                 cerr << "ERROR: Failed to log SET operation for key '" << key << "': " << e.what() << endl;
-                return false;
+                return branchdb::make_response(500, false, "[SET] Key : " + key + " operation for failed " + e.what());
             }
         }
         internal_set(key, metadata);
         cout << "[OK] SET: key " << key << " -> " << value << " (TTL: " << ttl_duration.count() << "s)" << endl;
-        return true;
+        return branchdb::make_response(200, true, "[SET] Key : " + key + " stored successfully.");
     }
 
     // GET - Logic
-    optional<string> Database::get(const string &key)
+    branchdb::ResponseMetaData Database::get(const string &key)
     {
         shared_lock<shared_mutex> lock(data_mutex_);
         auto it = data_.find(key);
@@ -259,25 +261,26 @@ namespace branchdb
         if (it == data_.end())
         {
             cout << "[X] GET: key " << key << " not found." << endl;
-            return nullopt;
+            return branchdb::make_response(404, false, "[GET] Key : " + key + " not found.");
         }
 
         // if key expired
         if (it->second.is_expired())
         {
             cout << "[X] GET: key " << key << " found but expired. Deleting" << endl;
-            return nullopt;
+            return branchdb::make_response(404, false, "[GET] Key : " + key + " expired.");
         }
 
         // Key found
         cout << "[OK] GET: key " << key << " -> " << it->second.value << endl;
-        return it->second.value;
+        return branchdb::make_response(200, true, "", it->second.value);
     }
 
     // DEL - Logic
-    bool Database::del(const string &key)
+    branchdb::ResponseMetaData Database::del(const string &key)
     {
         unique_lock<shared_mutex> lock(data_mutex_);
+
         if (!is_recovering_)
         {
             try
@@ -289,7 +292,7 @@ namespace branchdb
             catch (const runtime_error &e)
             {
                 cerr << "ERROR: Failed to log DEL operation for key '" << key << "': " << e.what() << endl;
-                return false;
+                return branchdb::make_response(500, false, "[DEL] Key : " + key + " operation failed " + e.what());
             }
         }
 
@@ -297,17 +300,18 @@ namespace branchdb
         if (was_deleted)
         {
             cout << "[OK] DEL: key " << key << " deleted successfully." << endl;
+            return branchdb::make_response(200, true, "[DEL] Key : " + key + " deleted successfully.");
         }
         else
         {
             // Cannot Delete - Key doesn't exists
             cout << "[X] DEL: key " << key << " cannot delete, cause key doesn't exists.`" << endl;
         }
-        return was_deleted;
+        return branchdb::make_response(404, false, "[DEL] Key : " + key + " not found.");
     }
 
     // Exists - Logic
-    bool Database::exists(const string &key)
+    branchdb::ResponseMetaData Database::exists(const string &key)
     {
         shared_lock<shared_mutex> lock(data_mutex_);
         auto it = data_.find(key);
@@ -316,22 +320,22 @@ namespace branchdb
         if (it == data_.end())
         {
             cout << "[X] EXISTS: key " << key << " not found." << endl;
-            return false;
+            return branchdb::make_response(404, false, "[EXISTS] Key : " + key + " not found.");
         }
 
         // Key expired
         if (it->second.is_expired())
         {
-            return false;
+            return branchdb::make_response(404, false, "[DEL] Key : " + key + " expired.");
         }
 
         // Key Exists
         cout << "[OK] EXISTS: key " << key << " exists." << endl;
-        return true;
+        return branchdb::make_response(200, true, "[EXISTS] Key : " + key + " exists.");
     }
 
     // TTL - Logic
-    long long Database::ttl(const string &key)
+    branchdb::ResponseMetaData Database::ttl(const string &key)
     {
         shared_lock<shared_mutex> lock(data_mutex_);
         auto it = data_.find(key);
@@ -340,13 +344,15 @@ namespace branchdb
         if (it == data_.end())
         {
             cout << "[X] TTL: key " << key << " not found." << endl;
-            return -2; // -2 indicates key not found
+            // return -2; // -2 indicates key not found
+            return branchdb::make_response(404, false, "[TTL] Key : " + key + " not found.");
         }
 
         // Key expired
         if (it->second.is_expired())
         {
-            return 0;
+            // return 0;
+            return branchdb::make_response(404, false, "[TTL] Key : " + key + " expired.");
         }
 
         long long remaining = it->second.remaining_ttl_seconds();
@@ -354,16 +360,18 @@ namespace branchdb
         if (remaining == -1)
         {
             cout << "[OK] TTL: key " << key << " has no expiry" << endl;
+            return branchdb::make_response(200, true, "[TTL] Key : " + key + " has no expiry.");
         }
         else
         {
             cout << "[OK] TTL: key " << key << " has " << remaining << " seconds remaining." << endl;
         }
-        return remaining;
+        // return remaining;
+        return branchdb::make_response(200, true, "[TTL] Key : " + key + " has " + to_string(remaining) + " seconds remaining.");
     }
 
     // Expire - Logic
-    bool Database::expire(const string &key, seconds ttl_duration)
+    branchdb::ResponseMetaData Database::expire(const string &key, seconds ttl_duration)
     {
         unique_lock<shared_mutex> lock(data_mutex_);
         auto it = data_.find(key);
@@ -384,21 +392,21 @@ namespace branchdb
                 catch (const runtime_error &e)
                 {
                     cerr << "ERROR: Failed to log EXPIRE operation for key '" << key << "': " << e.what() << endl;
-                    return false;
+                    return branchdb::make_response(500, false, "[EXPIRE] Key : " + key + " operation failed " + e.what());
                 }
             }
             internal_set(key, new_metadata);
             cout << "[OK] Expire: key " << key << " TTL set to " << ttl_duration.count() << "s." << endl;
-            return true;
+            return branchdb::make_response(200, true, "[EXPIRE] Key : " + key + " TTL saved successfully.");
         }
 
         // key not found
         cout << "[X] EXPIRE: Key '" << key << "' not found." << endl;
-        return false;
+        return branchdb::make_response(404, false, "[EXPIRE] Key : " + key + " not found.");
     }
 
     // Persists - Logic
-    void Database::persist(const string &key)
+    branchdb::ResponseMetaData Database::persist(const string &key)
     {
         unique_lock<shared_mutex> lock(data_mutex_);
         auto it = data_.find(key);
@@ -420,30 +428,33 @@ namespace branchdb
                 catch (const runtime_error &e)
                 {
                     cerr << "ERROR: Failed to log PERSIST operation for key '" << key << "': " << e.what() << endl;
-                    return;
+                    return branchdb::make_response(500, false, "[PERSIST] Key : " + key + " operation failed " + e.what());
                 }
 
                 internal_set(key, new_metadata);
                 cout << "[OK] PERSIST: key " << key << " TTL removed." << endl;
+                return branchdb::make_response(200, true, "[PERSIST] Key : " + key + " operation successfull.");
             }
         }
         else
         {
             cout << "[X] PERSIST: key " << key << " not found." << endl;
+            return branchdb::make_response(404, false, "[PERSIST] Key : " + key + " not found.");
         }
     }
 
     // GETALL - Logic
-    void Database::getall()
+    branchdb::ResponseMetaData Database::getall()
     {
         shared_lock<shared_mutex> lock(data_mutex_);
         if (data_.empty())
         {
             cout << "DB is empty | No keys exists." << endl;
-            return;
+            return branchdb::make_response(200, true, "[GETALL] DB is empty.");
         }
 
         cout << "Logging ALL keys: " << endl;
+        vector<string> keylist;
         for (auto &[key, _] : data_)
         {
             if (_.is_expired())
@@ -451,22 +462,22 @@ namespace branchdb
                 cout << key << " (expired)." << endl;
             }
             else
-                cout << key << endl;
+                keylist.push_back(key);
+            cout << key << endl;
         }
         cout << "Total keys count: " << data_.size() << endl;
-
-        return;
+        return branchdb::make_response(200, true, "[GETALL] Keys List : ");
     }
 
     // FLUSH - Logic
-    void Database::flush()
+    branchdb::ResponseMetaData Database::flush()
     {
         unique_lock<shared_mutex> lock(data_mutex_);
 
         if (data_.empty())
         {
             cout << "Zero keys exists to FLUSH." << endl;
-            return;
+            return branchdb::make_response(200, true, "[FLUSH] Zero keys exists to flush.");
         }
 
         if (!is_recovering_)
@@ -483,7 +494,7 @@ namespace branchdb
             catch (const runtime_error &e)
             {
                 cerr << "ERROR: Failed to log FLUSH operation. " << e.what() << endl;
-                return;
+                return branchdb::make_response(500, false, "[FLUSH] operation failed.");
             }
         }
 
@@ -491,11 +502,11 @@ namespace branchdb
         data_.clear();
 
         cout << "[OK] FLUSH: " << deleted_count << " key(s) deleted." << endl;
-        return;
+        return branchdb::make_response(200, true, "[FLUSH] " + to_string(deleted_count) + " key(s) deleted.");
     }
 
     // INFO - Logic
-    void Database::info()
+    branchdb::ResponseMetaData Database::info()
     {
         shared_lock<shared_mutex> lock(data_mutex_);
         size_t data_size = data_.size();
@@ -508,5 +519,6 @@ namespace branchdb
         cout << "Uptime: " << uptime_seconds << " seconds" << endl;
         cout << "TTL Scan Interval: " << TTL_SCAN_INTERVAL_.count() << " seconds" << endl;
         cout << "-------------------------" << endl;
+        return branchdb::make_response(200, true, "[INFO] executed successfully.");
     }
 }

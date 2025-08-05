@@ -13,13 +13,14 @@
 #include <iostream>
 #include <branchdb/db/database.h>
 #include <vector>
+#include <branchdb/db/response_metadata.h>
 
 using namespace std;
 using namespace chrono;
 
 namespace command
 {
-    void handleTTL(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleTTL(branchdb::Database &db, vector<string> &args)
     {
         if (args.size() >= 1)
         {
@@ -27,16 +28,20 @@ namespace command
 
             if (args.size() == 1)
             {
-                db.ttl(key);
+                return db.ttl(key);
             }
             else if (args.size() > 1)
             {
-                cout << "ERROR: Invalid TTL command format: Too many arguments passed!, Usage: TTL <key>" << endl;
+                string err_res = "Invalid TTL command format: Too many arguments passed!, Usage: TTL <key>";
+                cout << "ERROR: " << err_res << endl;
+                return branchdb::make_response(400, false, "[TTL] " + err_res);
             }
         }
         else
         {
-            cout << "ERROR: TTL command atleast requires <key>, Usage: TTL <key>" << endl;
+            string err_res = "TTL command atleast requires <key>, Usage: TTL <key>";
+            cout << "ERROR: " << err_res << endl;
+            return branchdb::make_response(400, false, "[TTL] " + err_res);
         }
     }
 }

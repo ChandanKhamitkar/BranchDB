@@ -13,13 +13,14 @@
 #include <iostream>
 #include <branchdb/db/database.h>
 #include <vector>
+#include <branchdb/db/response_metadata.h>
 
 using namespace std;
 using namespace chrono;
 
 namespace command
 {
-    void handlePERSIST(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handlePERSIST(branchdb::Database &db, vector<string> &args)
     {
         if (args.size() >= 1)
         {
@@ -27,16 +28,20 @@ namespace command
 
             if (args.size() == 1)
             {
-                db.persist(key);
+                return db.persist(key);
             }
             else if (args.size() > 1)
             {
-                cout << "ERROR: Invalid PERSIST command format: Too many arguments passed!, Usage: PERSIST <key>" << endl;
+                string err_res = "Invalid PERSIST command format: Too many arguments passed!, Usage: PERSIST <key>";
+                cout << "ERROR: " << err_res << endl;
+                return branchdb::make_response(400, false, "[PERSIST] " + err_res);
             }
         }
         else
         {
-            cout << "ERROR: PERSIST command atleast requires <key>, Usage: PERSIST <key>" << endl;
+            string err_res = "PERSIST command atleast requires <key>, Usage: PERSIST <key>";
+            cout << "ERROR: " << err_res << endl;
+            return branchdb::make_response(400, false, "[PERSIST] " + err_res);
         }
     }
 }

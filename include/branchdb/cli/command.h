@@ -14,22 +14,23 @@
 #define BRANCHDB_COMMAND_H
 
 #include <branchdb/db/database.h>
+#include <branchdb/db/response_metadata.h>
 #include <vector>
 #include <string>
 
 namespace command
 {
-    void handleSET(branchdb::Database &db, vector<string> &args);
-    void handleGET(branchdb::Database &db, vector<string> &args);
-    void handleDEL(branchdb::Database &db, vector<string> &args);
-    void handleEXISTS(branchdb::Database &db, vector<string> &args);
-    void handleTTL(branchdb::Database &db, vector<string> &args);
-    void handleEXPIRE(branchdb::Database &db, vector<string> &args);
-    void handlePERSIST(branchdb::Database &db, vector<string> &args);
-    void handleGET_ALL(branchdb::Database &db, vector<string> &args);
-    void handleFLUSH(branchdb::Database &db, vector<string> &args);
-    void handleINFO(branchdb::Database &db, vector<string> &args);
-    void handleHELP(vector<string> &args);
+    branchdb::ResponseMetaData handleSET(branchdb::Database &db, vector<string> &args);
+    branchdb::ResponseMetaData handleGET(branchdb::Database &db, vector<string> &args);
+    branchdb::ResponseMetaData handleDEL(branchdb::Database &db, vector<string> &args);
+    branchdb::ResponseMetaData handleEXISTS(branchdb::Database &db, vector<string> &args);
+    branchdb::ResponseMetaData handleTTL(branchdb::Database &db, vector<string> &args);
+    branchdb::ResponseMetaData handleEXPIRE(branchdb::Database &db, vector<string> &args);
+    branchdb::ResponseMetaData handlePERSIST(branchdb::Database &db, vector<string> &args);
+    branchdb::ResponseMetaData handleGET_ALL(branchdb::Database &db, vector<string> &args);
+    branchdb::ResponseMetaData handleFLUSH(branchdb::Database &db, vector<string> &args);
+    branchdb::ResponseMetaData handleINFO(branchdb::Database &db, vector<string> &args);
+    branchdb::ResponseMetaData handleHELP(vector<string> &args);
 }
 
 #endif

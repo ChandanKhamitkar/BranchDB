@@ -14,12 +14,13 @@
 #define BRANCHDB_HELPER_H
 
 #include <string>
+#include <branchdb/db/response_metadata.h>
 
 namespace helper
 {
     long long is_valid_seconds(const string& s);
     void trim_whitespace(string &str);
-    void command_parser(branchdb::Database &db, string& cmd_line);
+    branchdb::ResponseMetaData command_parser(branchdb::Database &db, string& cmd_line);
 } // namespace helper
 
 

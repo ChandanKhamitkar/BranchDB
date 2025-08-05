@@ -13,13 +13,14 @@
 #include <iostream>
 #include <branchdb/db/database.h>
 #include <vector>
+#include <branchdb/db/response_metadata.h>
 
 using namespace std;
 using namespace chrono;
 
 namespace command
 {
-    void handleDEL(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleDEL(branchdb::Database &db, vector<string> &args)
     {
         if (args.size() >= 1)
         {
@@ -27,16 +28,20 @@ namespace command
 
             if (args.size() == 1)
             {
-                db.del(key);
+                return db.del(key);
             }
             else if (args.size() > 1)
             {
-                cout << "ERROR: Invalid DEL command format: Too many arguments passed!, Usage: DEL <key>" << endl;
+                string err_res = "Invalid DEL command format: Too many arguments passed!, Usage: DEL <key>";
+                cout << "ERROR: " << err_res << endl;
+                return branchdb::make_response(400, false, "[DEL] " + err_res);
             }
         }
         else
         {
-            cout << "ERROR: DEL command atleast requires <key>, Usage: DEL <key>" << endl;
+            string err_res = "DEL command atleast requires <key>, Usage: DEL <key>";
+            cout << "ERROR: " << err_res << endl;
+            return branchdb::make_response(400, false, "[DEL] " + err_res);
         }
     }
 }

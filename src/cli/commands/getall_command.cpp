@@ -14,21 +14,24 @@
 #include <branchdb/db/database.h>
 #include <optional>
 #include <vector>
+#include <branchdb/db/response_metadata.h>
 
 using namespace std;
 using namespace chrono;
 
 namespace command
 {
-    void handleGET_ALL(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleGET_ALL(branchdb::Database &db, vector<string> &args)
     {
         if (args.size() == 0)
-        {   
-            db.getall();
+        {
+            return db.getall();
         }
         else
         {
-            cout << "ERROR: GETALL command doesn't requires any arguments, Usage: GETALL" << endl;
+            string err_res = "GETALL command doesn't requires any arguments, Usage: GETALL";
+            cout << "ERROR: " << err_res << endl;
+            return branchdb::make_response(400, false, "[GETALL] " + err_res);
         }
     }
 }
