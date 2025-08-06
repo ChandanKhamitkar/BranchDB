@@ -41,13 +41,13 @@ namespace command
                 "-------------------------\n\n";
 
             cout << res;
-            return branchdb::make_response(200, true, "[HELP]\n " + res);
+            return branchdb::make_response(200, true, "[HELP]\n " + res, monostate{});
         }
         else
         {
             string err_res = "Invalid HELP command usage, Valid Usage: HELP";
             cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(200, true, "[HELP] " + err_res);
+            return branchdb::make_response(200, true, "[HELP] " + err_res, monostate{});
         }
     }
 }

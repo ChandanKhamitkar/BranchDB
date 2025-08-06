@@ -52,18 +52,18 @@ namespace helper
         if (!cmdEnumOpt.has_value())
         {
             cout << "[X] Command not allowed: " << command_str << " | Type 'HELP' for list of commands." << endl;
-            return branchdb::make_response(400, false, "Invalid command: " + command_str + " | Type 'HELP' for list of commands.");
+            return branchdb::make_response(400, false, "Invalid command: " + command_str + " | Type 'HELP' for list of commands.", monostate{});
         }
 
         switch (cmdEnumOpt.value())
         {
         case helper::CommandEnums::EXIT:
             cout << "Exiting BranchDB CLI. GoodBye!" << endl;
-            return branchdb::make_response(200, true, "Exiting BranchDB CLI. GoodBye!");
+            return branchdb::make_response(200, true, "Exiting BranchDB CLI. GoodBye!", monostate{});
             // exit(0);
         case helper::CommandEnums::TEST:
             test::testDB(db);
-            return branchdb::make_response(200, true, "DONE with testing DB");
+            return branchdb::make_response(200, true, "DONE with testing DB", monostate{});
         case helper::CommandEnums::HELP:
             return command::handleHELP(args);
             break;
@@ -99,7 +99,7 @@ namespace helper
             break;
         default:
             cout << "[X] Invalid command: " << command_str << " | Type 'HELP' for list of commands." << endl;
-            return branchdb::make_response(400, false, "Invalid command: " + command_str + " | Type 'HELP' for list of commands.");
+            return branchdb::make_response(400, false, "Invalid command: " + command_str + " | Type 'HELP' for list of commands.", monostate{});
         }
     }
 

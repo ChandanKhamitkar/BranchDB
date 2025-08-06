@@ -51,20 +51,20 @@ namespace command
                 {
                     string res = "User denied flushing, Aborted.";
                     cout << res << endl;
-                    return branchdb::make_response(200, true, "[FLUSH] " + res);
+                    return branchdb::make_response(200, true, "[FLUSH] " + res, monostate{});
                 }
                 else
                 {
                     string res = "Invalid confirmation received. Type only (y/n).";
                     cout << res << endl;
-                    return branchdb::make_response(400, false, "[FLUSH] " + res);
+                    return branchdb::make_response(400, false, "[FLUSH] " + res, monostate{});
                 }
             }
             else
             {
                 string res = "Confirmation didn't received. Aborted.";
                 cout << res << endl;
-                return branchdb::make_response(400, false, "[FLUSH] " + res);
+                return branchdb::make_response(400, false, "[FLUSH] " + res, monostate{});
             }
         }
         else if (args.size() >= 1)
@@ -86,14 +86,14 @@ namespace command
             {
                 string err_res = "Invalid FLUSH command format: Too many arguments passed!, Usage: FLUSH or FLUSH FORCE";
                 cout << "ERROR: " << err_res << endl;
-                return branchdb::make_response(400, false, "[FLUSH] " + err_res);
+                return branchdb::make_response(400, false, "[FLUSH] " + err_res, monostate{});
             }
         }
         else
         {
             string err_res = "Invalid FLUSH command usage, Usage: FLUSH or FLUSH FORCE";
             cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(400, false, "[FLUSH] " + err_res);
+            return branchdb::make_response(400, false, "[FLUSH] " + err_res, monostate{});
         }
     }
 }

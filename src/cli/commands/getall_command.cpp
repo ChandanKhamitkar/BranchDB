@@ -31,7 +31,7 @@ namespace command
         {
             string err_res = "GETALL command doesn't requires any arguments, Usage: GETALL";
             cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(400, false, "[GETALL] " + err_res);
+            return branchdb::make_response(400, false, "[GETALL] " + err_res, monostate{});
         }
     }
 }

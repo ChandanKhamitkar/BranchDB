@@ -37,16 +37,33 @@ namespace branchdb
         os.write(reinterpret_cast<const char *>(&message_len), sizeof(message_len));
         os.write(message.data(), message_len);
 
-        if (res_data.has_value())
-        {
-            uint32_t payload_len = static_cast<uint32_t>(res_data.value().size());
-            os.write(reinterpret_cast<const char *>(&payload_len), sizeof(payload_len));
-            os.write(res_data.value().data(), payload_len);
-        }
-        else
+        char payload_type = static_cast<char>(res_data.index());
+        os.write(reinterpret_cast<const char*>(&payload_type), sizeof(payload_type));
+
+        if (holds_alternative<monostate>(res_data))
         {
             uint32_t payload_len = 0;
             os.write(reinterpret_cast<const char *>(&payload_len), sizeof(payload_len));
+        }
+        else if (holds_alternative<string>(res_data))
+        {
+            const string &payload_str = get<string>(res_data);
+            uint32_t payload_len = static_cast<uint32_t>(payload_str.length());
+            os.write(reinterpret_cast<const char *>(&payload_len), sizeof(payload_len));
+            os.write(payload_str.data(), payload_len);
+        }
+        else if (holds_alternative<vector<string>>(res_data))
+        {
+            const vector<string> &payload_vector = get<vector<string>>(res_data);
+            uint32_t payload_len = static_cast<uint32_t>(payload_vector.size());
+            os.write(reinterpret_cast<const char *>(&payload_len), sizeof(payload_len));
+
+            for (const string &s : payload_vector)
+            {
+                uint32_t string_len = static_cast<uint32_t>(s.length());
+                os.write(reinterpret_cast<const char *>(&string_len), sizeof(string_len));
+                os.write(s.data(), string_len);
+            }
         }
 
         if (!os.good())

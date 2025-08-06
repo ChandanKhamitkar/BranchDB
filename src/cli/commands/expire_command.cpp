@@ -40,7 +40,7 @@ namespace command
                 {
                     string err_res = "Invalid TTL value provided, must be a non-negative integer.";
                     cout << "ERROR: " << err_res << endl;
-                    return branchdb::make_response(400, false, "[EXPIRE] " + err_res);
+                    return branchdb::make_response(400, false, "[EXPIRE] " + err_res, monostate{});
                 }
                 
                 return db.expire(key, ttl_duration);
@@ -49,14 +49,14 @@ namespace command
             {
                 string err_res = "Invalid EXPIRE command format: Too many arguments passed!, Usage: EXPIRE <key> EX <seconds>";
                 cout << "ERROR: " << err_res << endl;
-                return branchdb::make_response(400, false, "[EXPIRE] " + err_res);
+                return branchdb::make_response(400, false, "[EXPIRE] " + err_res, monostate{});
             }
         }
         else
         {
             string err_res = "EXPIRE command atleast requires <key>, Usage: EXPIRE <key> EX <seconds>";
             cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(400, false, "[EXPIRE] " + err_res);
+            return branchdb::make_response(400, false, "[EXPIRE] " + err_res, monostate{});
         }
     }
 }

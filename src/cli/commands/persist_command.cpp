@@ -34,14 +34,14 @@ namespace command
             {
                 string err_res = "Invalid PERSIST command format: Too many arguments passed!, Usage: PERSIST <key>";
                 cout << "ERROR: " << err_res << endl;
-                return branchdb::make_response(400, false, "[PERSIST] " + err_res);
+                return branchdb::make_response(400, false, "[PERSIST] " + err_res, monostate{});
             }
         }
         else
         {
             string err_res = "PERSIST command atleast requires <key>, Usage: PERSIST <key>";
             cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(400, false, "[PERSIST] " + err_res);
+            return branchdb::make_response(400, false, "[PERSIST] " + err_res, monostate{});
         }
     }
 }

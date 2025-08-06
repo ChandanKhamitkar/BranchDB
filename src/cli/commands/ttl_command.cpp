@@ -34,14 +34,14 @@ namespace command
             {
                 string err_res = "Invalid TTL command format: Too many arguments passed!, Usage: TTL <key>";
                 cout << "ERROR: " << err_res << endl;
-                return branchdb::make_response(400, false, "[TTL] " + err_res);
+                return branchdb::make_response(400, false, "[TTL] " + err_res, monostate{});
             }
         }
         else
         {
             string err_res = "TTL command atleast requires <key>, Usage: TTL <key>";
             cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(400, false, "[TTL] " + err_res);
+            return branchdb::make_response(400, false, "[TTL] " + err_res, monostate{});
         }
     }
 }

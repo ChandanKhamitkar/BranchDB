@@ -35,14 +35,14 @@ namespace command
             {
                 string err_res = "Invalid GET command format: Too many arguments passed!, Usage: GET <key>";
                 cout << "ERROR: " << err_res<< endl;
-                return branchdb::make_response(400, false, "[GET] " + err_res);
+                return branchdb::make_response(400, false, "[GET] " + err_res, monostate{});
             }
         }
         else
         {
             string err_res = "GET command atleast requires <key>, Usage: GET <key>";
             cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(400, false, "[GET] " + err_res);
+            return branchdb::make_response(400, false, "[GET] " + err_res, monostate{});
         }
     }
 }

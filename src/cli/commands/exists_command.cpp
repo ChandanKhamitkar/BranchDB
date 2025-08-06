@@ -34,14 +34,14 @@ namespace command
             {
                 string err_res = "Invalid EXISTS command format: Too many arguments passed!, Usage: EXISTS <key>";
                 cout << "ERROR: " << err_res << endl;
-                return branchdb::make_response(400, false, "[EXISTS] " + err_res);
+                return branchdb::make_response(400, false, "[EXISTS] " + err_res, monostate{});
             }
         }
         else
         {
             string err_res = "EXISTS command atleast requires <key>, Usage: EXISTS <key>";
             cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(400, false, "[EXISTS] " + err_res);
+            return branchdb::make_response(400, false, "[EXISTS] " + err_res, monostate{});
         }
     }
 }

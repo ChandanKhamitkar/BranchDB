@@ -40,14 +40,14 @@ namespace command
                 {
                     string err_res = "Invalid TTL value provided, must be a non-negative integer.";
                     cout << "ERROR: " << err_res << endl;
-                    return branchdb::make_response(400, false, "[SET] " + err_res);
+                    return branchdb::make_response(400, false, "[SET] " + err_res, monostate{});
                 }
             }
             else if (args.size() > 2)
             {   
                 string err_res = "Invalid SET command format, Use SET <key> <value> EX <seconds>";
                 cout << "ERROR: " << err_res << endl;
-                return branchdb::make_response(400, false, "[SET] " + err_res);
+                return branchdb::make_response(400, false, "[SET] " + err_res, monostate{});
             }
             
             return db.set(key, value, ttl_duration);
@@ -56,7 +56,7 @@ namespace command
         {   
             string err_res = "SET command atleast requires <key> and <value>, Usage: SET <key> <value> EX <seconds>";
             cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(400, false, "[SET] " + err_res);
+            return branchdb::make_response(400, false, "[SET] " + err_res, monostate{});
         }
     }
 }

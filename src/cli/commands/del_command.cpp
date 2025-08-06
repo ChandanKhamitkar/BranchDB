@@ -34,14 +34,14 @@ namespace command
             {
                 string err_res = "Invalid DEL command format: Too many arguments passed!, Usage: DEL <key>";
                 cout << "ERROR: " << err_res << endl;
-                return branchdb::make_response(400, false, "[DEL] " + err_res);
+                return branchdb::make_response(400, false, "[DEL] " + err_res, monostate{});
             }
         }
         else
         {
             string err_res = "DEL command atleast requires <key>, Usage: DEL <key>";
             cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(400, false, "[DEL] " + err_res);
+            return branchdb::make_response(400, false, "[DEL] " + err_res, monostate{});
         }
     }
 }

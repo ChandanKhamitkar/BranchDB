@@ -30,7 +30,7 @@ namespace command
         {
             string err_res = "Invalid INFO command usage, Valid Usage: INFO";
             cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(400, false, "[INFO] " + err_res);
+            return branchdb::make_response(400, false, "[INFO] " + err_res, monostate{});
         }
     }
 }

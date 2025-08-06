@@ -243,12 +243,12 @@ namespace branchdb
             catch (const runtime_error &e)
             {
                 cerr << "ERROR: Failed to log SET operation for key '" << key << "': " << e.what() << endl;
-                return branchdb::make_response(500, false, "[SET] Key : " + key + " operation for failed " + e.what());
+                return branchdb::make_response(500, false, "[SET] Key : " + key + " operation for failed " + e.what(), monostate{});
             }
         }
         internal_set(key, metadata);
         cout << "[OK] SET: key " << key << " -> " << value << " (TTL: " << ttl_duration.count() << "s)" << endl;
-        return branchdb::make_response(200, true, "[SET] Key : " + key + " stored successfully.");
+        return branchdb::make_response(200, true, "[SET] Key : " + key + " stored successfully.", monostate{});
     }
 
     // GET - Logic
@@ -261,14 +261,14 @@ namespace branchdb
         if (it == data_.end())
         {
             cout << "[X] GET: key " << key << " not found." << endl;
-            return branchdb::make_response(404, false, "[GET] Key : " + key + " not found.");
+            return branchdb::make_response(404, false, "[GET] Key : " + key + " not found.", monostate{});
         }
 
         // if key expired
         if (it->second.is_expired())
         {
             cout << "[X] GET: key " << key << " found but expired. Deleting" << endl;
-            return branchdb::make_response(404, false, "[GET] Key : " + key + " expired.");
+            return branchdb::make_response(404, false, "[GET] Key : " + key + " expired.", monostate{});
         }
 
         // Key found
@@ -292,7 +292,7 @@ namespace branchdb
             catch (const runtime_error &e)
             {
                 cerr << "ERROR: Failed to log DEL operation for key '" << key << "': " << e.what() << endl;
-                return branchdb::make_response(500, false, "[DEL] Key : " + key + " operation failed " + e.what());
+                return branchdb::make_response(500, false, "[DEL] Key : " + key + " operation failed " + e.what(), monostate{});
             }
         }
 
@@ -300,14 +300,14 @@ namespace branchdb
         if (was_deleted)
         {
             cout << "[OK] DEL: key " << key << " deleted successfully." << endl;
-            return branchdb::make_response(200, true, "[DEL] Key : " + key + " deleted successfully.");
+            return branchdb::make_response(200, true, "[DEL] Key : " + key + " deleted successfully.", monostate{});
         }
         else
         {
             // Cannot Delete - Key doesn't exists
             cout << "[X] DEL: key " << key << " cannot delete, cause key doesn't exists.`" << endl;
         }
-        return branchdb::make_response(404, false, "[DEL] Key : " + key + " not found.");
+        return branchdb::make_response(404, false, "[DEL] Key : " + key + " not found.", monostate{});
     }
 
     // Exists - Logic
@@ -320,18 +320,18 @@ namespace branchdb
         if (it == data_.end())
         {
             cout << "[X] EXISTS: key " << key << " not found." << endl;
-            return branchdb::make_response(404, false, "[EXISTS] Key : " + key + " not found.");
+            return branchdb::make_response(404, false, "[EXISTS] Key : " + key + " not found.", monostate{});
         }
 
         // Key expired
         if (it->second.is_expired())
         {
-            return branchdb::make_response(404, false, "[DEL] Key : " + key + " expired.");
+            return branchdb::make_response(404, false, "[DEL] Key : " + key + " expired.", monostate{});
         }
 
         // Key Exists
         cout << "[OK] EXISTS: key " << key << " exists." << endl;
-        return branchdb::make_response(200, true, "[EXISTS] Key : " + key + " exists.");
+        return branchdb::make_response(200, true, "[EXISTS] Key : " + key + " exists.", monostate{});
     }
 
     // TTL - Logic
@@ -345,14 +345,14 @@ namespace branchdb
         {
             cout << "[X] TTL: key " << key << " not found." << endl;
             // return -2; // -2 indicates key not found
-            return branchdb::make_response(404, false, "[TTL] Key : " + key + " not found.");
+            return branchdb::make_response(404, false, "[TTL] Key : " + key + " not found.", monostate{});
         }
 
         // Key expired
         if (it->second.is_expired())
         {
             // return 0;
-            return branchdb::make_response(404, false, "[TTL] Key : " + key + " expired.");
+            return branchdb::make_response(404, false, "[TTL] Key : " + key + " expired.", monostate{});
         }
 
         long long remaining = it->second.remaining_ttl_seconds();
@@ -360,14 +360,14 @@ namespace branchdb
         if (remaining == -1)
         {
             cout << "[OK] TTL: key " << key << " has no expiry" << endl;
-            return branchdb::make_response(200, true, "[TTL] Key : " + key + " has no expiry.");
+            return branchdb::make_response(200, true, "[TTL] Key : " + key + " has no expiry.", monostate{});
         }
         else
         {
             cout << "[OK] TTL: key " << key << " has " << remaining << " seconds remaining." << endl;
         }
         // return remaining;
-        return branchdb::make_response(200, true, "[TTL] Key : " + key + " has " + to_string(remaining) + " seconds remaining.");
+        return branchdb::make_response(200, true, "[TTL] Key : " + key + " has " + to_string(remaining) + " seconds remaining.", monostate{});
     }
 
     // Expire - Logic
@@ -392,17 +392,17 @@ namespace branchdb
                 catch (const runtime_error &e)
                 {
                     cerr << "ERROR: Failed to log EXPIRE operation for key '" << key << "': " << e.what() << endl;
-                    return branchdb::make_response(500, false, "[EXPIRE] Key : " + key + " operation failed " + e.what());
+                    return branchdb::make_response(500, false, "[EXPIRE] Key : " + key + " operation failed " + e.what(), monostate{});
                 }
             }
             internal_set(key, new_metadata);
             cout << "[OK] Expire: key " << key << " TTL set to " << ttl_duration.count() << "s." << endl;
-            return branchdb::make_response(200, true, "[EXPIRE] Key : " + key + " TTL saved successfully.");
+            return branchdb::make_response(200, true, "[EXPIRE] Key : " + key + " TTL saved successfully.", monostate{});
         }
 
         // key not found
         cout << "[X] EXPIRE: Key '" << key << "' not found." << endl;
-        return branchdb::make_response(404, false, "[EXPIRE] Key : " + key + " not found.");
+        return branchdb::make_response(404, false, "[EXPIRE] Key : " + key + " not found.", monostate{});
     }
 
     // Persists - Logic
@@ -428,18 +428,18 @@ namespace branchdb
                 catch (const runtime_error &e)
                 {
                     cerr << "ERROR: Failed to log PERSIST operation for key '" << key << "': " << e.what() << endl;
-                    return branchdb::make_response(500, false, "[PERSIST] Key : " + key + " operation failed " + e.what());
+                    return branchdb::make_response(500, false, "[PERSIST] Key : " + key + " operation failed " + e.what(), monostate{});
                 }
 
                 internal_set(key, new_metadata);
                 cout << "[OK] PERSIST: key " << key << " TTL removed." << endl;
-                return branchdb::make_response(200, true, "[PERSIST] Key : " + key + " operation successfull.");
+                return branchdb::make_response(200, true, "[PERSIST] Key : " + key + " operation successfull.", monostate{});
             }
         }
         else
         {
             cout << "[X] PERSIST: key " << key << " not found." << endl;
-            return branchdb::make_response(404, false, "[PERSIST] Key : " + key + " not found.");
+            return branchdb::make_response(404, false, "[PERSIST] Key : " + key + " not found.", monostate{});
         }
     }
 
@@ -450,7 +450,7 @@ namespace branchdb
         if (data_.empty())
         {
             cout << "DB is empty | No keys exists." << endl;
-            return branchdb::make_response(200, true, "[GETALL] DB is empty.");
+            return branchdb::make_response(200, true, "[GETALL] DB is empty.", monostate{});
         }
 
         cout << "Logging ALL keys: " << endl;
@@ -466,7 +466,7 @@ namespace branchdb
             cout << key << endl;
         }
         cout << "Total keys count: " << data_.size() << endl;
-        return branchdb::make_response(200, true, "[GETALL] Keys List : ");
+        return branchdb::make_response(200, true, "[GETALL] Keys List : ", keylist);
     }
 
     // FLUSH - Logic
@@ -477,7 +477,7 @@ namespace branchdb
         if (data_.empty())
         {
             cout << "Zero keys exists to FLUSH." << endl;
-            return branchdb::make_response(200, true, "[FLUSH] Zero keys exists to flush.");
+            return branchdb::make_response(200, true, "[FLUSH] Zero keys exists to flush.", monostate{});
         }
 
         if (!is_recovering_)
@@ -494,7 +494,7 @@ namespace branchdb
             catch (const runtime_error &e)
             {
                 cerr << "ERROR: Failed to log FLUSH operation. " << e.what() << endl;
-                return branchdb::make_response(500, false, "[FLUSH] operation failed.");
+                return branchdb::make_response(500, false, "[FLUSH] operation failed.", monostate{});
             }
         }
 
@@ -502,7 +502,7 @@ namespace branchdb
         data_.clear();
 
         cout << "[OK] FLUSH: " << deleted_count << " key(s) deleted." << endl;
-        return branchdb::make_response(200, true, "[FLUSH] " + to_string(deleted_count) + " key(s) deleted.");
+        return branchdb::make_response(200, true, "[FLUSH] " + to_string(deleted_count) + " key(s) deleted.", monostate{});
     }
 
     // INFO - Logic
@@ -519,6 +519,6 @@ namespace branchdb
         cout << "Uptime: " << uptime_seconds << " seconds" << endl;
         cout << "TTL Scan Interval: " << TTL_SCAN_INTERVAL_.count() << " seconds" << endl;
         cout << "-------------------------" << endl;
-        return branchdb::make_response(200, true, "[INFO] executed successfully.");
+        return branchdb::make_response(200, true, "[INFO] executed successfully.", monostate{});
     }
 }

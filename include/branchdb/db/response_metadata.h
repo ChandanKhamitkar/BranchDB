@@ -15,20 +15,29 @@
 
 #include <string>
 #include <optional>
+#include <variant>
+#include <vector>
 
 using namespace std;
 namespace branchdb
 {
+
+    using PayloadTypes = variant<
+        monostate,
+        string,
+        vector<string>
+    >;
+
     struct ResponseMetaData
     {
         size_t status_code;
         bool success;
         string message;
-        optional<string> res_data;
+        PayloadTypes res_data;
 
         // initialize constructor
         ResponseMetaData(const size_t &status_code, bool success,
-                         const string &message = "", optional<string> res_data = nullopt)
+                         const string &message = "", PayloadTypes res_data = monostate{})
             : status_code(status_code), success(success), message(message), res_data(res_data) {}
 
         // Default Constructor
@@ -41,7 +50,7 @@ namespace branchdb
         size_t status_code,
         bool success,
         const string &message,
-        optional<string> res_data = nullopt)
+        PayloadTypes res_data)
     {
         return ResponseMetaData(status_code, success, message, res_data);
     }
