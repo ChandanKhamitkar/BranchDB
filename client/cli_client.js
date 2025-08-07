@@ -1,7 +1,7 @@
 import net from "net";
 import readline from "readline";
 
-const TOKEN = "radheradhe";
+const TOKEN = "radheradhee";
 const PAYLOAD_TYPE = {
   MONOSTATE: 0,
   STRING: 1,
@@ -35,8 +35,8 @@ client.on("data", (data) => {
 
   let offset = 0;
 
-  const status_code = data.readInt8(offset);
-  offset += 1;
+  const status_code = data.readUint32LE(offset);
+  offset += 4;
 
   const success = data.readInt8(offset);
   offset += 1;

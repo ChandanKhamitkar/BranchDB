@@ -27,8 +27,8 @@ namespace branchdb
     // Serialization - Data -> Binary Stream
     void ResponseMetaData::to_binary(ostream &os) const
     {
-        char status_code_char = static_cast<char>(status_code);
-        os.write(reinterpret_cast<const char *>(&status_code_char), sizeof(status_code_char));
+        int32_t status_code_int = static_cast<int32_t>(status_code);
+        os.write(reinterpret_cast<const char *>(&status_code_int), sizeof(status_code_int));
 
         bool success_flag = success;
         os.write(reinterpret_cast<const char *>(&success_flag), sizeof(success_flag));
@@ -38,7 +38,7 @@ namespace branchdb
         os.write(message.data(), message_len);
 
         char payload_type = static_cast<char>(res_data.index());
-        os.write(reinterpret_cast<const char*>(&payload_type), sizeof(payload_type));
+        os.write(reinterpret_cast<const char *>(&payload_type), sizeof(payload_type));
 
         if (holds_alternative<monostate>(res_data))
         {

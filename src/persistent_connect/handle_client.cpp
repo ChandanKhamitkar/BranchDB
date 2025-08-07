@@ -20,6 +20,20 @@
 
 using namespace std;
 
+bool write_response_to_client(boost::asio::ip::tcp::socket &socket, string serialized_response)
+{
+    boost::system::error_code write_error;
+    boost::asio::write(socket, boost::asio::buffer(serialized_response), write_error);
+
+    if (write_error)
+    {
+        cerr << "Error writing response to client: " << write_error.message() << endl;
+        return false;
+    }
+
+    return true;
+}
+
 namespace persistent_connect
 {
     void handle_client(boost::asio::ip::tcp::socket socket, branchdb::Database &db)
@@ -53,12 +67,8 @@ namespace persistent_connect
                     branchdb::ResponseMetaData response_obj = branchdb::make_response(200, true, "AUTH Token verified.", monostate{});
                     string serialized_response = helper::build_serialized_response(response_obj);
 
-                    boost::system::error_code write_error;
-                    boost::asio::write(socket, boost::asio::buffer(serialized_response), write_error);
-
-                    if (write_error)
+                    if (!write_response_to_client(socket, serialized_response))
                     {
-                        cerr << "Error writing response to client: " << write_error.message() << endl;
                         return;
                     }
                 }
@@ -67,6 +77,7 @@ namespace persistent_connect
                     branchdb::ResponseMetaData response_obj = branchdb::make_response(400, false, "[X] AUTH failed. Invalid token.\n", monostate{});
                     string serialized_response = helper::build_serialized_response(response_obj);
                     cerr << "Error: Invalid auth token " << endl;
+                    write_response_to_client(socket, serialized_response);
                     return;
                 }
             }
@@ -75,6 +86,7 @@ namespace persistent_connect
                 branchdb::ResponseMetaData response_obj = branchdb::make_response(400, false, "[X] AUTH required. First command must be AUTH.\n", monostate{});
                 string serialized_response = helper::build_serialized_response(response_obj);
                 cerr << "Error: missing auth token " << endl;
+                write_response_to_client(socket, serialized_response);
                 return;
             }
         }
