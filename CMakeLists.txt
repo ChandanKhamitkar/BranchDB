@@ -50,6 +50,11 @@ set(SRC_DB_FILES
     src/db/value_metadata.cpp
     src/db/response_metadata.cpp
 )
+    
+set(SRC_HELPER_FILES
+    # HELPER
+    src/helper/build_serialized_response.cpp
+)
 
 # ALL SRC FILES
 set(ALL_SRC_FILES
@@ -57,6 +62,7 @@ set(ALL_SRC_FILES
     ${SRC_CLI_FILES}
     ${SRC_TEST_FILES}
     ${SRC_DB_FILES}
+    ${SRC_HELPER_FILES}
 )
 
 # Add an Executabale target

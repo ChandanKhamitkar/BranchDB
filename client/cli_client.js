@@ -1,6 +1,7 @@
 import net from "net";
 import readline from "readline";
 
+const TOKEN = "radheradhe";
 const PAYLOAD_TYPE = {
   MONOSTATE: 0,
   STRING: 1,
@@ -21,6 +22,10 @@ const client = new net.Socket();
 client.on("connect", () => {
   console.log("CLIENT connected to server at ", HOST, " ", PORT);
   console.log("CLIENT Ready to send commands. Type 'exit' to quit.");
+
+  const auth_payload = "AUTH" + TOKEN;
+  client.write(auth_payload + '\n');
+
   rl.prompt();
 });
 
@@ -90,12 +95,13 @@ rl.on("line", (line) => {
     client.end();
     rl.close();
   } else {
-    client.write(trimmedLine + "\n");
+    client.write(trimmedLine + '\n');
   }
 });
 
 client.on("close", () => {
   console.log("CLIENT connection closed.");
+  exit(0);
 });
 
 client.on("error", (err) => {

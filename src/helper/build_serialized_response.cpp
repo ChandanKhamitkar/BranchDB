@@ -10,19 +10,21 @@
  * You must retain this header in any redistribution or modification.
  */
 
-#ifndef BRANCHDB_HELPER_H
-#define BRANCHDB_HELPER_H
-
+#include <iostream>
 #include <string>
+#include <sstream>
 #include <branchdb/db/response_metadata.h>
+
+using namespace std;
 
 namespace helper
 {
-    long long is_valid_seconds(const string& s);
-    void trim_whitespace(string &str);
-    branchdb::ResponseMetaData command_parser(branchdb::Database &db, string& cmd_line);
-    string build_serialized_response(branchdb::ResponseMetaData &response_obj);
+    string build_serialized_response(branchdb::ResponseMetaData &response_obj)
+    {
+        stringstream ss;
+        response_obj.to_binary(ss);
+        string serialized_response = ss.str();
+        serialized_response += '\n';
+        return serialized_response;
+    }
 } // namespace helper
-
-
-#endif
