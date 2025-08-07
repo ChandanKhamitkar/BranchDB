@@ -47,6 +47,7 @@ namespace persistent_connect
             string payload;
             getline(is, payload);
             cout << "[CLIENT] Buffer data recieved: " << payload << endl;
+            cout << "[CLIENT] Payload size: " << payload.size() << " bytes" << endl;
             branchdb::ResponseMetaData response_obj = helper::command_parser(db, payload);
 
             stringstream ss;

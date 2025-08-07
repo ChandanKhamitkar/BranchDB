@@ -53,7 +53,6 @@ client.on("data", (data) => {
     const payload_len = data.readUint32LE(offset);
     offset += 4;
     payload = data.toString("utf8", offset, offset + payload_len);
-    payload = JSON.parse(payload);
     offset += payload_len;
   } else if (payload_type === PAYLOAD_TYPE.VECTOR_STRING) {
     const vector_size = data.readUint32LE(offset);
@@ -90,22 +89,7 @@ rl.on("line", (line) => {
     console.log("[CLIENT] Closing connection...");
     client.end();
     rl.close();
-  }
-  else if(trimmedLine.toLowerCase() === "custom") {
-    const myDetails = {
-      "name" : "chandan",
-      "age" : 21,
-      "married" : false,
-      "phonenumber" : {
-        "one" : "8688873934",
-        "two" : "1233333333",
-      },
-      "fl" : 12.46
-    }
-    const newLine = "set custom " + JSON.stringify(myDetails);
-    client.write(newLine + "\n");
-  }
-  else {
+  } else {
     client.write(trimmedLine + "\n");
   }
 });
