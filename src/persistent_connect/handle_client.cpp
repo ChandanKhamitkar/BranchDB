@@ -40,6 +40,7 @@ namespace persistent_connect
     {
 
         // 1. Get AUTH TOKEN & Verify it
+        /*
         string auth_token;
         bool user_authenticated = false;
 
@@ -90,6 +91,7 @@ namespace persistent_connect
                 return;
             }
         }
+        */
 
         while (true)
         {
@@ -114,7 +116,7 @@ namespace persistent_connect
             string payload;
             getline(is, payload);
             cout << "[CLIENT] Buffer data recieved: " << payload << endl;
-            cout << "[CLIENT] Payload size: " << payload.size() << " bytes" << endl;
+            // cout << "[CLIENT] Payload size: " << payload.size() << " bytes" << endl;
             branchdb::ResponseMetaData response_obj = helper::command_parser(db, payload);
 
             string serialized_response = helper::build_serialized_response(response_obj);

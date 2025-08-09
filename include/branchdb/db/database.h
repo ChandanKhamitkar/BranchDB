@@ -67,13 +67,13 @@ namespace branchdb
         branchdb::ResponseMetaData persist(const string &key);
 
         // GETALL Method: logs all keys
-        branchdb::ResponseMetaData Database::getall();
+        branchdb::ResponseMetaData getall();
 
         // GETALL Method: logs all keys
-        branchdb::ResponseMetaData Database::flush();
+        branchdb::ResponseMetaData flush();
 
         // INFO: Says about ( uptime, Number of keys, etc..)
-        branchdb::ResponseMetaData Database::info();
+        branchdb::ResponseMetaData info();
 
     private:
         // Core key-value store
