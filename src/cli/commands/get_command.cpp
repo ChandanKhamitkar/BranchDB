@@ -21,7 +21,7 @@ using namespace chrono;
 
 namespace command
 {
-    branchdb::ResponseMetaData handleGET(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleGET(branchdb::Database &db, const string &auth_token, vector<string> &args)
     {
         if (args.size() >= 1)
         {
@@ -29,20 +29,17 @@ namespace command
 
             if (args.size() == 1)
             {
-                return db.get(key);
+                return db.get(auth_token, key);
             }
             else if (args.size() > 1)
             {
                 string err_res = "Invalid GET command format: Too many arguments passed!, Usage: GET <key>";
-                cout << "ERROR: " << err_res<< endl;
+                cout << "ERROR: " << err_res << endl;
                 return branchdb::make_response(400, false, "[GET] " + err_res, monostate{});
             }
         }
-        else
-        {
-            string err_res = "GET command atleast requires <key>, Usage: GET <key>";
-            cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(400, false, "[GET] " + err_res, monostate{});
-        }
+        string err_res = "GET command atleast requires <key>, Usage: GET <key>";
+        cout << "ERROR: " << err_res << endl;
+        return branchdb::make_response(400, false, "[GET] " + err_res, monostate{});
     }
 }

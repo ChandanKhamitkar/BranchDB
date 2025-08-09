@@ -20,7 +20,7 @@ using namespace chrono;
 
 namespace command
 {
-    branchdb::ResponseMetaData handleEXISTS(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleEXISTS(branchdb::Database &db, const string &auth_token, vector<string> &args)
     {
         if (args.size() >= 1)
         {
@@ -28,7 +28,7 @@ namespace command
 
             if (args.size() == 1)
             {
-                return db.exists(key);
+                return db.exists(auth_token, key);
             }
             else if (args.size() > 1)
             {
@@ -37,11 +37,8 @@ namespace command
                 return branchdb::make_response(400, false, "[EXISTS] " + err_res, monostate{});
             }
         }
-        else
-        {
-            string err_res = "EXISTS command atleast requires <key>, Usage: EXISTS <key>";
-            cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(400, false, "[EXISTS] " + err_res, monostate{});
-        }
+        string err_res = "EXISTS command atleast requires <key>, Usage: EXISTS <key>";
+        cout << "ERROR: " << err_res << endl;
+        return branchdb::make_response(400, false, "[EXISTS] " + err_res, monostate{});
     }
 }

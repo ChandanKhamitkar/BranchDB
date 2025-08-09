@@ -21,6 +21,10 @@
 #include <limits>
 #include <stdexcept>
 #include <mutex>
+#include <filesystem>
+#include <random>
+#include <sstream>
+#include <iomanip>
 
 using namespace std;
 using namespace chrono;
@@ -35,7 +39,7 @@ namespace branchdb
         os.write(s.data(), len);
         if (!os.good())
         {
-            throw std::runtime_error("Error writing string to log file.");
+            throw runtime_error("Error writing string to log file.");
         }
     }
 
@@ -63,17 +67,21 @@ namespace branchdb
     }
 
     // 📍--- [Private] Internal SET | DEL operation ---
-    void Database::internal_set(const string &key, const ValueMetaData &metadata)
+    void Database::internal_set(const string &auth_token, const string &key, const ValueMetaData &metadata)
     {
         if (!metadata.is_expired())
         {
-            data_[key] = metadata;
+            data_[auth_token][key] = metadata;
         }
     }
 
-    bool Database::internal_del(const string &key)
+    bool Database::internal_del(const string &auth_token, const string &key)
     {
-        return data_.erase(key) > 0;
+        if (data_.find(auth_token) != data_.end())
+        {
+            return data_.at(auth_token).erase(key) > 0;
+        }
+        return false;
     }
 
     // --- Database Constructor & Deconstructor
@@ -98,6 +106,7 @@ namespace branchdb
         cout << "Branch DB initialized. Attempting recovery from..." << endl;
 
         start_time_ = steady_clock::now();
+        load_auth_tokens_from_file();
         load_from_log();
         cout << "[OK] Recovery complete. Database contains." << endl
              << endl;
@@ -120,10 +129,10 @@ namespace branchdb
         {
             log_file_out_.close();
         }
-        cout << "Branch DB shut down." << endl;
+        cout << "BranchDB shut down." << endl;
     }
 
-    // --- Log recovery Method ---
+    // Log recovery Method
     void Database::load_from_log()
     {
         is_recovering_ = true;
@@ -141,13 +150,15 @@ namespace branchdb
         {
             try
             {
+                optional<string> stored_auth_token = read_string_from_log(log_file_in);
                 optional<string> key_opt = read_string_from_log(log_file_in);
-                if (!key_opt)
+                if (!key_opt || !stored_auth_token)
                 {
-                    cerr << "ERROR: Corrupted log entry (missing key) or EOF while reading opp: " << op_code << endl;
+                    cerr << "ERROR: Corrupted log entry (missing key) or (missing auth_token) EOF while reading opp: " << endl;
                     break;
                 }
 
+                string user_key = *stored_auth_token;
                 string key = *key_opt;
                 if (op_code == SET_OP)
                 {
@@ -158,11 +169,11 @@ namespace branchdb
                         break;
                     }
 
-                    internal_set(key, *metadata_opt);
+                    internal_set(user_key, key, *metadata_opt);
                 }
                 else if (op_code == DEL_OP)
                 {
-                    internal_del(key);
+                    internal_del(user_key, key);
                 }
                 else
                 {
@@ -180,7 +191,33 @@ namespace branchdb
         is_recovering_ = false;
     }
 
-    // --- TTL Cleanup ---
+    // Load Auth Tokens
+    void Database::load_auth_tokens_from_file()
+    {
+        ifstream file(AUTH_FILE_NAME);
+        if (!file.is_open())
+        {
+            cerr << "[AUTH] WARNING: '" << "' not found. No auth tokens will be loaded." << endl;
+            return;
+        }
+
+        string line;
+        while (getline(file, line))
+        {
+            size_t delimPos = line.find(':');
+            if (delimPos == string::npos)
+                continue;
+
+            string username = line.substr(0, delimPos);
+            string token = line.substr(delimPos + 1);
+            
+            username_to_token_[username] = token;
+            token_to_username_[token] = username;
+        }
+        file.close();
+    }
+
+    // TTL Cleanup
     void Database::ttl_cleanup_loop()
     {
         // cout << "TTL cleanup loop started. Scanning every " << TTL_SCAN_INTERVAL_.count() << " seconds." << endl;
@@ -191,16 +228,19 @@ namespace branchdb
             if (stop_ttl_cleanup_)
                 break;
 
-            vector<string> keys_to_delete;
+            vector<pair<string, string>> keys_to_delete;
 
             // acquire Read lock by 'shared_lock' - allows multiple readers or single writer
             {
                 shared_lock<shared_mutex> lock(data_mutex_);
-                for (const auto &pair : data_)
+                for (const auto &outer_pair : data_)
                 {
-                    if (pair.second.is_expired())
+                    for (const auto &inner_pair : outer_pair.second)
                     {
-                        keys_to_delete.push_back(pair.first);
+                        if (inner_pair.second.is_expired())
+                        {
+                            keys_to_delete.push_back({outer_pair.first, inner_pair.first});
+                        }
                     }
                 }
             } // Release Read lock
@@ -209,10 +249,9 @@ namespace branchdb
             if (!keys_to_delete.empty())
             {
                 unique_lock<shared_mutex> lock(data_mutex_);
-                for (const string &key : keys_to_delete)
+                for (const auto &[auth_key, key] : keys_to_delete)
                 {
-                    internal_del(key);
-                    // cout << "[TTL BG Cleaner] Expired key '" << key << "' removed from memory." << endl;
+                    internal_del(auth_key, key);
                 }
 
                 // Deallocate occupied space
@@ -220,22 +259,122 @@ namespace branchdb
                 keys_to_delete.shrink_to_fit();
             }
         }
-        cout << "TTL cleanup thread stopped." << std::endl;
+        // cout << "TTL cleanup thread stopped." << endl;
+    }
+
+    // Log Compaction Method
+    void Database::compact_log()
+    {
+        unique_lock<shared_mutex> lock(data_mutex_);
+
+        string temp_log_file = LOG_FILE_NAME + ".tmp";
+        ofstream temp_log_out(temp_log_file, ios::out | ios::binary);
+
+        if (!temp_log_out.is_open())
+        {
+            cerr << "[LOG] ERROR: Failed to open temporary log file for compaction." << endl;
+            return;
+        }
+
+        try
+        {
+            for (const auto &[auth_token, user_data] : data_)
+            {
+                for (const auto &[key, metadata] : user_data)
+                {
+                    if (!metadata.is_expired())
+                    {
+                        log_file_out_.put(SET_OP);
+                        write_string_to_log(temp_log_out, auth_token);
+                        write_string_to_log(temp_log_out, key);
+                        metadata.to_binary(temp_log_out);
+                    }
+                }
+            }
+
+            temp_log_out.close();
+            log_file_out_.close();
+            filesystem::rename(temp_log_file, LOG_FILE_NAME);
+            log_file_out_.open(LOG_FILE_NAME, ios::out | ios::app | ios::binary);
+        }
+        catch (const runtime_error &e)
+        {
+            cerr << "[LOG] FATAL ERROR during log compaction: " << e.what() << endl;
+            log_file_out_.open(LOG_FILE_NAME, ios::out | ios::app | ios::binary);
+        }
     }
 
     // 📍--- Public Operations | CLI Commands Logics ---
 
-    // SET - Logic
-    branchdb::ResponseMetaData Database::set(const string &key, const string &value, seconds ttl_duration)
+    // Generates a new hex token
+    string Database::generate_new_auth_token()
     {
-        ValueMetaData metadata(value, ttl_duration);
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> distrib(0, 255);
+
+        stringstream ss;
+        ss << hex;
+        for (int i = 0; i < 32; ++i)
+        {
+            int val = distrib(gen);
+            if (val < 16)
+            {
+                ss << "0";
+            }
+            ss << val;
+        }
+        return ss.str();
+    }
+
+    // Returns stored token based on username input
+    string Database::get_stored_token(const string &username)
+    {
+        auto it = username_to_token_.find(username);
+        if (it != username_to_token_.end())
+        {
+            return it->second;
+        }
+        return "";
+    }
+
+    // Stores token to hash map.
+    void Database::add_auth_token(const string &username, const string &token)
+    {
+        username_to_token_[username] = token;
+        token_to_username_[token] = username;
+        ofstream file(AUTH_FILE_NAME, ios::app);
+        if (file.is_open())
+        {
+            file << username << ":" << token << endl;
+            file.close();
+        }
+    }
+
+    // New token validation
+    bool Database::is_valid_auth_token(const string &token) const
+    {
+        return token_to_username_.find(token) != token_to_username_.end();
+    }
+
+    // Check if username exists
+    bool Database::username_exists(const string &username) const
+    {
+        return username_to_token_.find(username) != username_to_token_.end();
+    }
+
+    // SET - Logic
+    branchdb::ResponseMetaData Database::set(const string &auth_token, const string &key, const string &value, seconds ttl_duration)
+    {
         unique_lock<shared_mutex> lock(data_mutex_);
+        ValueMetaData metadata(value, ttl_duration);
 
         if (!is_recovering_)
         {
             try
             {
                 log_file_out_.put(SET_OP);
+                write_string_to_log(log_file_out_, auth_token);
                 write_string_to_log(log_file_out_, key);
                 metadata.to_binary(log_file_out_);
                 log_file_out_.flush(); // writing data to disk immediately
@@ -246,19 +385,26 @@ namespace branchdb
                 return branchdb::make_response(500, false, "[SET] Key : " + key + " operation for failed " + e.what(), monostate{});
             }
         }
-        internal_set(key, metadata);
+        internal_set(auth_token, key, metadata);
         cout << "[OK] SET: key " << key << " -> " << value << " (TTL: " << ttl_duration.count() << "s)" << endl;
         return branchdb::make_response(200, true, "[SET] Key : " + key + " stored successfully.", monostate{});
     }
 
     // GET - Logic
-    branchdb::ResponseMetaData Database::get(const string &key)
+    branchdb::ResponseMetaData Database::get(const string &auth_token, const string &key)
     {
+        cout << "GET AUTH TOKEN: " << auth_token << endl;
         shared_lock<shared_mutex> lock(data_mutex_);
-        auto it = data_.find(key);
+
+        if (data_.find(auth_token) == data_.end())
+        {
+            return branchdb::make_response(401, false, "[AUTH] Invalid auth token.", monostate{});
+        }
+
+        auto it = data_.at(auth_token).find(key);
 
         // Key not found
-        if (it == data_.end())
+        if (it == data_.at(auth_token).end())
         {
             cout << "[X] GET: key " << key << " not found." << endl;
             return branchdb::make_response(404, false, "[GET] Key : " + key + " not found.", monostate{});
@@ -277,15 +423,21 @@ namespace branchdb
     }
 
     // DEL - Logic
-    branchdb::ResponseMetaData Database::del(const string &key)
+    branchdb::ResponseMetaData Database::del(const string &auth_token, const string &key)
     {
         unique_lock<shared_mutex> lock(data_mutex_);
+
+        if (data_.find(auth_token) == data_.end())
+        {
+            return branchdb::make_response(401, false, "[AUTH] Invalid auth token.", monostate{});
+        }
 
         if (!is_recovering_)
         {
             try
             {
                 log_file_out_.put(DEL_OP);
+                write_string_to_log(log_file_out_, auth_token);
                 write_string_to_log(log_file_out_, key);
                 log_file_out_.flush();
             }
@@ -296,7 +448,7 @@ namespace branchdb
             }
         }
 
-        bool was_deleted = internal_del(key);
+        bool was_deleted = internal_del(auth_token, key);
         if (was_deleted)
         {
             cout << "[OK] DEL: key " << key << " deleted successfully." << endl;
@@ -311,13 +463,19 @@ namespace branchdb
     }
 
     // Exists - Logic
-    branchdb::ResponseMetaData Database::exists(const string &key)
+    branchdb::ResponseMetaData Database::exists(const string &auth_token, const string &key)
     {
         shared_lock<shared_mutex> lock(data_mutex_);
-        auto it = data_.find(key);
+
+        if (data_.find(auth_token) == data_.end())
+        {
+            return branchdb::make_response(401, false, "[AUTH] Invalid auth token.", monostate{});
+        }
+
+        auto it = data_.at(auth_token).find(key);
 
         // Key Not Found
-        if (it == data_.end())
+        if (it == data_.at(auth_token).end())
         {
             cout << "[X] EXISTS: key " << key << " not found." << endl;
             return branchdb::make_response(404, false, "[EXISTS] Key : " + key + " not found.", monostate{});
@@ -335,13 +493,19 @@ namespace branchdb
     }
 
     // TTL - Logic
-    branchdb::ResponseMetaData Database::ttl(const string &key)
+    branchdb::ResponseMetaData Database::ttl(const string &auth_token, const string &key)
     {
         shared_lock<shared_mutex> lock(data_mutex_);
-        auto it = data_.find(key);
+
+        if (data_.find(auth_token) == data_.end())
+        {
+            return branchdb::make_response(401, false, "[AUTH] Invalid auth token.", monostate{});
+        }
+
+        auto it = data_.at(auth_token).find(key);
 
         // Key Not Found
-        if (it == data_.end())
+        if (it == data_.at(auth_token).end())
         {
             cout << "[X] TTL: key " << key << " not found." << endl;
             // return -2; // -2 indicates key not found
@@ -371,13 +535,19 @@ namespace branchdb
     }
 
     // Expire - Logic
-    branchdb::ResponseMetaData Database::expire(const string &key, seconds ttl_duration)
+    branchdb::ResponseMetaData Database::expire(const string &auth_token, const string &key, seconds ttl_duration)
     {
         unique_lock<shared_mutex> lock(data_mutex_);
-        auto it = data_.find(key);
+
+        if (data_.find(auth_token) == data_.end())
+        {
+            return branchdb::make_response(401, false, "[AUTH] Invalid auth token.", monostate{});
+        }
+
+        auto it = data_.at(auth_token).find(key);
 
         // Key found
-        if (it != data_.end())
+        if (it != data_.at(auth_token).end())
         {
             ValueMetaData new_metadata(it->second.value, ttl_duration);
             if (!is_recovering_)
@@ -385,6 +555,7 @@ namespace branchdb
                 try
                 {
                     log_file_out_.put(SET_OP);
+                    write_string_to_log(log_file_out_, auth_token);
                     write_string_to_log(log_file_out_, key);
                     new_metadata.to_binary(log_file_out_);
                     log_file_out_.flush();
@@ -395,7 +566,7 @@ namespace branchdb
                     return branchdb::make_response(500, false, "[EXPIRE] Key : " + key + " operation failed " + e.what(), monostate{});
                 }
             }
-            internal_set(key, new_metadata);
+            internal_set(auth_token, key, new_metadata);
             cout << "[OK] Expire: key " << key << " TTL set to " << ttl_duration.count() << "s." << endl;
             return branchdb::make_response(200, true, "[EXPIRE] Key : " + key + " TTL saved successfully.", monostate{});
         }
@@ -406,13 +577,19 @@ namespace branchdb
     }
 
     // Persists - Logic
-    branchdb::ResponseMetaData Database::persist(const string &key)
+    branchdb::ResponseMetaData Database::persist(const string &auth_token, const string &key)
     {
         unique_lock<shared_mutex> lock(data_mutex_);
-        auto it = data_.find(key);
+
+        if (data_.find(auth_token) == data_.end())
+        {
+            return branchdb::make_response(401, false, "[AUTH] Invalid auth token.", monostate{});
+        }
+
+        auto it = data_.at(auth_token).find(key);
 
         // key found
-        if (it != data_.end())
+        if (it != data_.at(auth_token).end())
         {
             ValueMetaData new_metadata(it->second.value, seconds(0));
             // Add to logs
@@ -421,6 +598,7 @@ namespace branchdb
                 try
                 {
                     log_file_out_.put(SET_OP);
+                    write_string_to_log(log_file_out_, auth_token);
                     write_string_to_log(log_file_out_, key);
                     new_metadata.to_binary(log_file_out_);
                     log_file_out_.flush();
@@ -431,7 +609,7 @@ namespace branchdb
                     return branchdb::make_response(500, false, "[PERSIST] Key : " + key + " operation failed " + e.what(), monostate{});
                 }
 
-                internal_set(key, new_metadata);
+                internal_set(auth_token, key, new_metadata);
                 cout << "[OK] PERSIST: key " << key << " TTL removed." << endl;
                 return branchdb::make_response(200, true, "[PERSIST] Key : " + key + " operation successfull.", monostate{});
             }
@@ -439,15 +617,22 @@ namespace branchdb
         else
         {
             cout << "[X] PERSIST: key " << key << " not found." << endl;
-            return branchdb::make_response(404, false, "[PERSIST] Key : " + key + " not found.", monostate{});
         }
+        return branchdb::make_response(404, false, "[PERSIST] Key : " + key + " not found.", monostate{});
     }
 
     // GETALL - Logic
-    branchdb::ResponseMetaData Database::getall()
+    branchdb::ResponseMetaData Database::getall(const string &auth_token)
     {
         shared_lock<shared_mutex> lock(data_mutex_);
-        if (data_.empty())
+
+        if (data_.find(auth_token) == data_.end())
+        {
+            return branchdb::make_response(401, false, "[AUTH] Invalid auth token.", monostate{});
+        }
+
+        const auto &user_data = data_.at(auth_token);
+        if (user_data.empty())
         {
             cout << "DB is empty | No keys exists." << endl;
             return branchdb::make_response(200, true, "[GETALL] DB is empty.", monostate{});
@@ -455,61 +640,55 @@ namespace branchdb
 
         cout << "Logging ALL keys: " << endl;
         vector<string> keylist;
-        for (auto &[key, _] : data_)
+        for (auto &[key, _] : user_data)
         {
-            if (_.is_expired())
+            if (!_.is_expired())
             {
-                cout << key << " (expired)." << endl;
-            }
-            else
                 keylist.push_back(key);
+            }
             cout << key << endl;
         }
-        cout << "Total keys count: " << data_.size() << endl;
         return branchdb::make_response(200, true, "[GETALL] Keys List : ", keylist);
     }
 
     // FLUSH - Logic
-    branchdb::ResponseMetaData Database::flush()
+    branchdb::ResponseMetaData Database::flush(const string &auth_token)
     {
         unique_lock<shared_mutex> lock(data_mutex_);
 
-        if (data_.empty())
+        if (data_.find(auth_token) == data_.end())
+        {
+            return branchdb::make_response(401, false, "[AUTH] Invalid auth token.", monostate{});
+        }
+
+        auto &user_data = data_.at(auth_token);
+        if (user_data.empty())
         {
             cout << "Zero keys exists to FLUSH." << endl;
             return branchdb::make_response(200, true, "[FLUSH] Zero keys exists to flush.", monostate{});
         }
 
-        if (!is_recovering_)
-        {
-            try
-            {
-                for (const auto &[key, _] : data_)
-                {
-                    log_file_out_.put(DEL_OP);
-                    write_string_to_log(log_file_out_, key);
-                }
-                log_file_out_.flush();
-            }
-            catch (const runtime_error &e)
-            {
-                cerr << "ERROR: Failed to log FLUSH operation. " << e.what() << endl;
-                return branchdb::make_response(500, false, "[FLUSH] operation failed.", monostate{});
-            }
-        }
+        size_t deleted_count = user_data.size();
+        user_data.clear();
 
-        size_t deleted_count = data_.size();
-        data_.clear();
+        compact_log();
 
         cout << "[OK] FLUSH: " << deleted_count << " key(s) deleted." << endl;
         return branchdb::make_response(200, true, "[FLUSH] " + to_string(deleted_count) + " key(s) deleted.", monostate{});
     }
 
     // INFO - Logic
-    branchdb::ResponseMetaData Database::info()
+    branchdb::ResponseMetaData Database::info(const string &auth_token)
     {
         shared_lock<shared_mutex> lock(data_mutex_);
-        size_t data_size = data_.size();
+
+        if (data_.find(auth_token) == data_.end())
+        {
+            return branchdb::make_response(401, false, "[AUTH] Invalid auth token.", monostate{});
+        }
+
+        size_t data_size = data_.at(auth_token).size();
+        ;
 
         auto uptime_duration = steady_clock::now() - start_time_;
         auto uptime_seconds = duration_cast<seconds>(uptime_duration).count();

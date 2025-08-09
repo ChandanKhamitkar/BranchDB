@@ -30,7 +30,9 @@ Branch DB is designed with a minimalistic architecture to focus on core database
 2. **Concurrency Layer** – Implements thread-safety with read-write locks.
 3. **Persistence Layer** – Ensures durability by writing data to disk via log files.
 4. **TTL Manager** – A background thread that periodically scans for and removes expired keys.
-
+5. **Compact Logging** - Log file is compacted automatically when the `FLUSH` command is executed.
+6. **Multi-User Architecture** - Supports multiple databases within a single instance (e.g., `staging`, `production`).
+7. **Authentication** - Built-in security to control and verify user access.
 ---
 
 # Getting Started

@@ -24,7 +24,7 @@ using namespace std;
 
 namespace helper
 {
-    branchdb::ResponseMetaData command_parser(branchdb::Database &db, string &cmd_line)
+    branchdb::ResponseMetaData command_parser(branchdb::Database &db, const string &auth_token, string &cmd_line)
     {
         helper::trim_whitespace(cmd_line);
 
@@ -59,7 +59,7 @@ namespace helper
         {
         case helper::CommandEnums::EXIT:
             cout << "Exiting BranchDB CLI. GoodBye!" << endl;
-            return branchdb::make_response(200, true, "Exiting BranchDB CLI. GoodBye!", monostate{});
+            return branchdb::make_response(200, true, "Exiting BranchDB. GoodBye!", monostate{});
             // exit(0);
         case helper::CommandEnums::TEST:
             test::testDB(db);
@@ -68,34 +68,34 @@ namespace helper
             return command::handleHELP(args);
             break;
         case helper::CommandEnums::SET:
-            return command::handleSET(db, args);
+            return command::handleSET(db, auth_token, args);
             break;
         case helper::CommandEnums::GET:
-            return command::handleGET(db, args);
+            return command::handleGET(db, auth_token, args);
             break;
         case helper::CommandEnums::DEL:
-            return command::handleDEL(db, args);
+            return command::handleDEL(db, auth_token, args);
             break;
         case helper::CommandEnums::EXISTS:
-            return command::handleEXISTS(db, args);
+            return command::handleEXISTS(db, auth_token, args);
             break;
         case helper::CommandEnums::TTL:
-            return command::handleTTL(db, args);
+            return command::handleTTL(db, auth_token, args);
             break;
         case helper::CommandEnums::EXPIRE:
-            return command::handleEXPIRE(db, args);
+            return command::handleEXPIRE(db, auth_token, args);
             break;
         case helper::CommandEnums::PERSIST:
-            return command::handlePERSIST(db, args);
+            return command::handlePERSIST(db, auth_token, args);
             break;
         case helper::CommandEnums::GETALL:
-            return command::handleGET_ALL(db, args);
+            return command::handleGET_ALL(db, auth_token, args);
             break;
         case helper::CommandEnums::FLUSH:
-            return command::handleFLUSH(db, args);
+            return command::handleFLUSH(db, auth_token, args);
             break;
         case helper::CommandEnums::INFO:
-            return command::handleINFO(db, args);
+            return command::handleINFO(db, auth_token, args);
             break;
         default:
             cout << "[X] Invalid command: " << command_str << " | Type 'HELP' for list of commands." << endl;

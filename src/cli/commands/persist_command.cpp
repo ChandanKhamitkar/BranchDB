@@ -20,7 +20,7 @@ using namespace chrono;
 
 namespace command
 {
-    branchdb::ResponseMetaData handlePERSIST(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handlePERSIST(branchdb::Database &db, const string &auth_token, vector<string> &args)
     {
         if (args.size() >= 1)
         {
@@ -28,7 +28,7 @@ namespace command
 
             if (args.size() == 1)
             {
-                return db.persist(key);
+                return db.persist(auth_token, key);
             }
             else if (args.size() > 1)
             {
@@ -37,11 +37,8 @@ namespace command
                 return branchdb::make_response(400, false, "[PERSIST] " + err_res, monostate{});
             }
         }
-        else
-        {
-            string err_res = "PERSIST command atleast requires <key>, Usage: PERSIST <key>";
-            cout << "ERROR: " << err_res << endl;
-            return branchdb::make_response(400, false, "[PERSIST] " + err_res, monostate{});
-        }
+        string err_res = "PERSIST command atleast requires <key>, Usage: PERSIST <key>";
+        cout << "ERROR: " << err_res << endl;
+        return branchdb::make_response(400, false, "[PERSIST] " + err_res, monostate{});
     }
 }

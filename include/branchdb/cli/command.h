@@ -20,16 +20,16 @@
 
 namespace command
 {
-    branchdb::ResponseMetaData handleSET(branchdb::Database &db, vector<string> &args);
-    branchdb::ResponseMetaData handleGET(branchdb::Database &db, vector<string> &args);
-    branchdb::ResponseMetaData handleDEL(branchdb::Database &db, vector<string> &args);
-    branchdb::ResponseMetaData handleEXISTS(branchdb::Database &db, vector<string> &args);
-    branchdb::ResponseMetaData handleTTL(branchdb::Database &db, vector<string> &args);
-    branchdb::ResponseMetaData handleEXPIRE(branchdb::Database &db, vector<string> &args);
-    branchdb::ResponseMetaData handlePERSIST(branchdb::Database &db, vector<string> &args);
-    branchdb::ResponseMetaData handleGET_ALL(branchdb::Database &db, vector<string> &args);
-    branchdb::ResponseMetaData handleFLUSH(branchdb::Database &db, vector<string> &args);
-    branchdb::ResponseMetaData handleINFO(branchdb::Database &db, vector<string> &args);
+    branchdb::ResponseMetaData handleSET(branchdb::Database &db, const string &auth_token, vector<string> &args);
+    branchdb::ResponseMetaData handleGET(branchdb::Database &db, const string &auth_token, vector<string> &args);
+    branchdb::ResponseMetaData handleDEL(branchdb::Database &db, const string &auth_token, vector<string> &args);
+    branchdb::ResponseMetaData handleEXISTS(branchdb::Database &db, const string &auth_token, vector<string> &args);
+    branchdb::ResponseMetaData handleTTL(branchdb::Database &db, const string &auth_token, vector<string> &args);
+    branchdb::ResponseMetaData handleEXPIRE(branchdb::Database &db, const string &auth_token, vector<string> &args);
+    branchdb::ResponseMetaData handlePERSIST(branchdb::Database &db, const string &auth_token, vector<string> &args);
+    branchdb::ResponseMetaData handleGET_ALL(branchdb::Database &db, const string &auth_token, vector<string> &args);
+    branchdb::ResponseMetaData handleFLUSH(branchdb::Database &db, const string &auth_token, vector<string> &args);
+    branchdb::ResponseMetaData handleINFO(branchdb::Database &db, const string &auth_token, vector<string> &args);
     branchdb::ResponseMetaData handleHELP(vector<string> &args);
 }
 

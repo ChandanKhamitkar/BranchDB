@@ -35,7 +35,7 @@ namespace cli
         {
             cout << "> ";
             getline(cin, cmd_line);
-            helper::command_parser(db, cmd_line);
+            helper::command_parser(db, "AUTH testauthtoken", cmd_line);
             cin.clear();
         }
     }

@@ -18,11 +18,10 @@
 
 namespace helper
 {
-    long long is_valid_seconds(const string& s);
+    long long is_valid_seconds(const string &s);
     void trim_whitespace(string &str);
-    branchdb::ResponseMetaData command_parser(branchdb::Database &db, string& cmd_line);
+    branchdb::ResponseMetaData command_parser(branchdb::Database &db, const string &auth_token, string &cmd_line);
     string build_serialized_response(branchdb::ResponseMetaData &response_obj);
 } // namespace helper
-
 
 #endif

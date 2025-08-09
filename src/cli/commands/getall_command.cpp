@@ -21,11 +21,11 @@ using namespace chrono;
 
 namespace command
 {
-    branchdb::ResponseMetaData handleGET_ALL(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleGET_ALL(branchdb::Database &db, const string &auth_token, vector<string> &args)
     {
         if (args.size() == 0)
         {
-            return db.getall();
+            return db.getall(auth_token);
         }
         else
         {

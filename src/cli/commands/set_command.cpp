@@ -22,7 +22,7 @@ using namespace chrono;
 
 namespace command
 {
-    branchdb::ResponseMetaData handleSET(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleSET(branchdb::Database &db, const string &auth_token, vector<string> &args)
     {
         if (args.size() >= 2)
         {
@@ -44,16 +44,16 @@ namespace command
                 }
             }
             else if (args.size() > 2)
-            {   
+            {
                 string err_res = "Invalid SET command format, Use SET <key> <value> EX <seconds>";
                 cout << "ERROR: " << err_res << endl;
                 return branchdb::make_response(400, false, "[SET] " + err_res, monostate{});
             }
-            
-            return db.set(key, value, ttl_duration);
+
+            return db.set(auth_token, key, value, ttl_duration);
         }
         else
-        {   
+        {
             string err_res = "SET command atleast requires <key> and <value>, Usage: SET <key> <value> EX <seconds>";
             cout << "ERROR: " << err_res << endl;
             return branchdb::make_response(400, false, "[SET] " + err_res, monostate{});

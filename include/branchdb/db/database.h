@@ -15,6 +15,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <chrono>
 #include "value_metadata.h"
 #include <optional>
@@ -39,45 +40,61 @@ namespace branchdb
     };
 
     const string LOG_FILE_NAME = "branchdb.log";
+    const string AUTH_FILE_NAME = "auth_config.config";
     class Database
     {
     public:
         Database();
         ~Database();
 
+        // Validating Authenticate Token
+        bool is_valid_auth_token(const string &token) const;
+
+        // Generate a new token and return it.
+        string generate_new_auth_token();
+
+        // Store the new token to .config file
+        void add_auth_token(const string &username, const string &token);
+
+        // Retrive the token from hashmap.
+        string get_stored_token(const string &username);
+
+        // Check if Username exists
+        bool username_exists(const string &username) const;
+
         // SET Method
-        branchdb::ResponseMetaData set(const string &key, const string &value, seconds ttl_duration = seconds(0));
+        branchdb::ResponseMetaData set(const string &auth_token, const string &key, const string &value, seconds ttl_duration = seconds(0));
 
         // GET Method
-        branchdb::ResponseMetaData get(const string &key);
+        branchdb::ResponseMetaData get(const string &auth_token, const string &key);
 
         // DEL Method
-        branchdb::ResponseMetaData del(const string &key);
+        branchdb::ResponseMetaData del(const string &auth_token, const string &key);
 
         // Exists Method : Checks if a key exists
-        branchdb::ResponseMetaData exists(const string &key);
+        branchdb::ResponseMetaData exists(const string &auth_token, const string &key);
 
         // TTL Method : Returns the remaining time
-        branchdb::ResponseMetaData ttl(const string &key);
+        branchdb::ResponseMetaData ttl(const string &auth_token, const string &key);
 
         // expire Method : Sets a new TTL for an existing key.
-        branchdb::ResponseMetaData expire(const string &key, seconds ttl_duration);
+        branchdb::ResponseMetaData expire(const string &auth_token, const string &key, seconds ttl_duration);
 
         // persist Method : Removes the TTL of a key.
-        branchdb::ResponseMetaData persist(const string &key);
+        branchdb::ResponseMetaData persist(const string &auth_token, const string &key);
 
         // GETALL Method: logs all keys
-        branchdb::ResponseMetaData getall();
+        branchdb::ResponseMetaData getall(const string &auth_token);
 
         // GETALL Method: logs all keys
-        branchdb::ResponseMetaData flush();
+        branchdb::ResponseMetaData flush(const string &auth_token);
 
         // INFO: Says about ( uptime, Number of keys, etc..)
-        branchdb::ResponseMetaData info();
+        branchdb::ResponseMetaData info(const string &auth_token);
 
     private:
         // Core key-value store
-        unordered_map<string, ValueMetaData> data_;
+        unordered_map<string, unordered_map<string, ValueMetaData>> data_;
 
         // Mutex
         shared_mutex data_mutex_;
@@ -92,8 +109,8 @@ namespace branchdb
         steady_clock::time_point start_time_;
 
         // internal SET
-        void internal_set(const string &key, const ValueMetaData &metadata);
-        bool internal_del(const string &key);
+        void internal_set(const string &auth_token, const string &key, const ValueMetaData &metadata);
+        bool internal_del(const string &auth_token, const string &key);
 
         // Load from log file
         void load_from_log();
@@ -103,8 +120,16 @@ namespace branchdb
 
         // TTL Cleanup
         void ttl_cleanup_loop();
+
+        unordered_map<string, string> username_to_token_;
+        unordered_map<string, string> token_to_username_;
+
+        // Recover/Load the tokens from config file to Interactable Hashmap
+        void load_auth_tokens_from_file();
+
+        // Compact Log - Avoid indefinite growing log file
+        void compact_log();
     };
 } // namespace branchdb
-
 
 #endif

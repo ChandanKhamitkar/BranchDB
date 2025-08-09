@@ -21,7 +21,7 @@ using namespace chrono;
 
 namespace command
 {
-    branchdb::ResponseMetaData handleEXPIRE(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleEXPIRE(branchdb::Database &db, const string &auth_token, vector<string> &args)
     {
         // EXPIRE x EX 40
         if (args.size() >= 3)
@@ -42,8 +42,8 @@ namespace command
                     cout << "ERROR: " << err_res << endl;
                     return branchdb::make_response(400, false, "[EXPIRE] " + err_res, monostate{});
                 }
-                
-                return db.expire(key, ttl_duration);
+
+                return db.expire(auth_token, key, ttl_duration);
             }
             else
             {

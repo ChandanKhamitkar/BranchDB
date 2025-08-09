@@ -20,11 +20,11 @@ using namespace chrono;
 
 namespace command
 {
-    branchdb::ResponseMetaData handleINFO(branchdb::Database &db, vector<string> &args)
+    branchdb::ResponseMetaData handleINFO(branchdb::Database &db, const string &auth_token, vector<string> &args)
     {
         if (args.size() == 0)
         {
-            return db.info();
+            return db.info(auth_token);
         }
         else
         {

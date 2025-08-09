@@ -40,7 +40,6 @@ int main()
         boost::asio::ip::tcp::socket socket(io_context);
         acceptor.accept(socket);
 
-        cout << "New connection established : " << socket.remote_endpoint() << endl;
         thread(persistent_connect::handle_client, move(socket), ref(db)).detach();
     }
 

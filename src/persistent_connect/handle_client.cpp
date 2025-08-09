@@ -38,95 +38,113 @@ namespace persistent_connect
 {
     void handle_client(boost::asio::ip::tcp::socket socket, branchdb::Database &db)
     {
+        cout << "New connection established : " << socket.remote_endpoint() << endl;
 
         // 1. Get AUTH TOKEN & Verify it
-        /*
         string auth_token;
         bool user_authenticated = false;
 
-        boost::asio::streambuf auth_buffer;
-        boost::system::error_code auth_error;
-        size_t auth_bytes_read = boost::asio::read_until(socket, auth_buffer, '\n', auth_error);
-
-        if (auth_bytes_read > 0)
+        while (!user_authenticated)
         {
-            istream is(&auth_buffer);
-            string auth_payload;
-            getline(is, auth_payload);
-            cout << "[AUTH] Buffer data recieved: " << auth_payload << endl;
+            boost::asio::streambuf auth_buffer;
+            boost::system::error_code auth_error;
+            size_t auth_bytes_read = boost::asio::read_until(socket, auth_buffer, '\n', auth_error);
 
-            if (auth_payload.substr(0, 4) == "AUTH")
+            if (auth_bytes_read > 0)
             {
-                string token = auth_payload.substr(4);
-                cout << "TOKEN extracted:  " << token << endl;
+                istream is(&auth_buffer);
+                string auth_payload;
+                getline(is, auth_payload);
 
-                if (token == "radheradhe")
+                if (auth_payload.substr(0, 4) == "AUTH")
                 {
-                    auth_token = token;
-                    user_authenticated = true;
+                    string token = auth_payload.substr(5);
+                    // cout << "TOKEN extracted:  " << token << endl;
 
-                    branchdb::ResponseMetaData response_obj = branchdb::make_response(200, true, "AUTH Token verified.", monostate{});
-                    string serialized_response = helper::build_serialized_response(response_obj);
-
-                    if (!write_response_to_client(socket, serialized_response))
+                    if (db.is_valid_auth_token(token))
                     {
+                        auth_token = token;
+                        user_authenticated = true;
+
+                        branchdb::ResponseMetaData response_obj = branchdb::make_response(200, true, "AUTH Token verified.", monostate{});
+                        write_response_to_client(socket, helper::build_serialized_response(response_obj));
+                        break;
+                    }
+                    else
+                    {
+                        branchdb::ResponseMetaData response_obj = branchdb::make_response(400, false, "[X] AUTH failed. Invalid token.", monostate{});
+                        cerr << "Error: Invalid auth token " << endl;
+                        write_response_to_client(socket, helper::build_serialized_response(response_obj));
                         return;
                     }
                 }
+                else if (auth_payload.substr(0, 8) == "REGISTER")
+                {
+                    string username = auth_payload.substr(9);
+                    string new_token;
+                    if (!db.username_exists(username))
+                    {
+                        new_token = db.generate_new_auth_token();
+                        db.add_auth_token(username, new_token);
+                    }
+                    else
+                    {
+                        new_token = db.get_stored_token(username);
+                    }
+                    branchdb::ResponseMetaData response_obj = branchdb::make_response(200, true, new_token, monostate{});
+                    string serialized_response = helper::build_serialized_response(response_obj);
+                    write_response_to_client(socket, serialized_response);
+                }
                 else
                 {
-                    branchdb::ResponseMetaData response_obj = branchdb::make_response(400, false, "[X] AUTH failed. Invalid token.\n", monostate{});
-                    string serialized_response = helper::build_serialized_response(response_obj);
-                    cerr << "Error: Invalid auth token " << endl;
-                    write_response_to_client(socket, serialized_response);
+                    branchdb::ResponseMetaData response_obj = branchdb::make_response(400, false, "[X] AUTH required. First command must be AUTH.", monostate{});
+                    cerr << "Error: missing auth token " << endl;
+                    write_response_to_client(socket, helper::build_serialized_response(response_obj));
+                    socket.close();
                     return;
                 }
             }
             else
             {
-                branchdb::ResponseMetaData response_obj = branchdb::make_response(400, false, "[X] AUTH required. First command must be AUTH.\n", monostate{});
-                string serialized_response = helper::build_serialized_response(response_obj);
-                cerr << "Error: missing auth token " << endl;
-                write_response_to_client(socket, serialized_response);
+                socket.close();
                 return;
             }
         }
-        */
 
-        while (true)
+        if (user_authenticated)
         {
-
-            boost::asio::streambuf buffer;
-            boost::system::error_code error;
-
-            size_t bytes_read = boost::asio::read_until(socket, buffer, '\n', error);
-            if (error == boost::asio::error::eof || bytes_read == 0)
+            while (true)
             {
-                cout << "Client disconnected gracefully: " << error.message() << endl;
-                break;
-            }
-            else if (error)
-            {
-                cerr << "Error reading from client: " << error.message() << endl;
-                break;
-            }
 
-            // log the payload
-            istream is(&buffer);
-            string payload;
-            getline(is, payload);
-            cout << "[CLIENT] Buffer data recieved: " << payload << endl;
-            // cout << "[CLIENT] Payload size: " << payload.size() << " bytes" << endl;
-            branchdb::ResponseMetaData response_obj = helper::command_parser(db, payload);
+                boost::asio::streambuf buffer;
+                boost::system::error_code error;
 
-            string serialized_response = helper::build_serialized_response(response_obj);
-            boost::system::error_code write_error;
-            boost::asio::write(socket, boost::asio::buffer(serialized_response), write_error);
+                size_t bytes_read = boost::asio::read_until(socket, buffer, '\n', error);
+                if (error == boost::asio::error::eof || bytes_read == 0)
+                {
+                    cout << "Client disconnected gracefully: " << error.message() << endl;
+                    break;
+                }
+                else if (error)
+                {
+                    cerr << "Error reading from client: " << error.message() << endl;
+                    break;
+                }
 
-            if (write_error)
-            {
-                cerr << "Error writing response to client: " << write_error.message() << endl;
-                break;
+                // log the payload
+                istream is(&buffer);
+                string payload;
+                getline(is, payload);
+
+                cout << "[CLIENT] Buffer data recieved: " << payload << endl;
+
+                branchdb::ResponseMetaData response_obj = helper::command_parser(db, auth_token, payload);
+                string serialized_response = helper::build_serialized_response(response_obj);
+
+                if (!write_response_to_client(socket, helper::build_serialized_response(response_obj)))
+                {
+                    break;
+                }
             }
         }
     }

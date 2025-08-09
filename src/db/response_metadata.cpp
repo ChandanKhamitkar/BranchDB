@@ -30,14 +30,14 @@ namespace branchdb
         int32_t status_code_int = static_cast<int32_t>(status_code);
         os.write(reinterpret_cast<const char *>(&status_code_int), sizeof(status_code_int));
 
-        bool success_flag = success;
+        uint8_t success_flag = success ? 1 : 0;
         os.write(reinterpret_cast<const char *>(&success_flag), sizeof(success_flag));
 
         uint32_t message_len = static_cast<uint32_t>(message.length());
         os.write(reinterpret_cast<const char *>(&message_len), sizeof(message_len));
         os.write(message.data(), message_len);
 
-        char payload_type = static_cast<char>(res_data.index());
+        uint8_t payload_type = static_cast<uint8_t>(res_data.index());
         os.write(reinterpret_cast<const char *>(&payload_type), sizeof(payload_type));
 
         if (holds_alternative<monostate>(res_data))
@@ -68,8 +68,7 @@ namespace branchdb
 
         if (!os.good())
         {
-            throw std::runtime_error("Error writing ValueMetadata to binary stream.");
+            throw std::runtime_error("Error writing ResponseMetaData to binary stream.");
         }
     }
-
 }

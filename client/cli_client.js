@@ -23,8 +23,8 @@ client.on("connect", () => {
   console.log("CLIENT connected to server at ", HOST, " ", PORT);
   console.log("CLIENT Ready to send commands. Type 'exit' to quit.");
 
-  // const auth_payload = "AUTH" + TOKEN;
-  // client.write(auth_payload + '\n');
+  const auth_payload = "AUTH " + TOKEN;
+  client.write(auth_payload + '\n');
 
   rl.prompt();
 });
