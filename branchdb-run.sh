@@ -2,6 +2,7 @@
 # chmod +x branchdb-run.sh
 
 echo "Building BranchDB, please wait..."
+mkdir -p build
 cd build || exit 1
 
 cmake .. || exit 1
