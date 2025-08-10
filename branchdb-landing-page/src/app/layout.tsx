@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Open_Sans } from "next/font/google";
 import "./globals.css";
+import { NavbarDemo } from "@/components/Navbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+export const openSans = Open_Sans({
+  variable: "--font-open-sans",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ['400', '500', '700']
 });
 
 export const metadata: Metadata = {
@@ -25,8 +22,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${openSans.variable} antialiased`}
       >
+
+        <div className="fixed top-0 left-0 w-full z-50 bg-transparent mt-6">
+          <NavbarDemo />
+        </div>
         {children}
       </body>
     </html>
