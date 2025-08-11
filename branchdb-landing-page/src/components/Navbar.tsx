@@ -16,22 +16,18 @@ export function NavbarDemo() {
     const navItems = [
         {
             name: "Docs",
-            link: "#docs",
+            link: "/docs",
         },
         {
             name: "SDK",
-            link: "#sdk",
-        },
-        // {
-        //   name: "Downoa",
-        //   link: "#contact",
-        // },
+            link: "/sdk",
+        }
     ];
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
-        <div className="relative w-[80%] rounded-full border border-white/20 mx-auto px-2 py-3 backdrop-blur-2xl">
+        <div className="relative w-[80%] rounded-full border border-white/20 mx-auto px-2 py-3 backdrop-blur-xl">
             <Navbar>
                 {/* Desktop Navigation */}
                 <NavBody>

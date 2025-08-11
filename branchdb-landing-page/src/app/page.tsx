@@ -1,9 +1,9 @@
 import { SparklesCore } from "../components/ui/Sparkels";
-import { openSans } from "./layout";
+import { onest } from "./layout";
 
 export default function Home() {
   return (
-    <div className="h-screen w-full bg-black flex flex-col overflow-hidden rounded-md relative pt-[80px]">
+    <div className={`h-screen w-full bg-black flex flex-col overflow-hidden rounded-md relative pt-[80px] ${onest.className}`}>
 
       {/* Background Video */}
       <video
@@ -19,7 +19,7 @@ export default function Home() {
 
       {/* Main content centered */}
       <div className="flex flex-col items-center justify-center flex-1 relative z-20">
-        <h1 className={`md:text-7xl text-3xl lg:text-[150px] font-bold text-center bg-gradient-to-r from-[#616161] via-[#ffffff] to-[#616161] bg-clip-text text-transparent relative z-20 ${openSans.className}`}>
+        <h1 className={`md:text-7xl text-3xl lg:text-[150px] font-bold text-center bg-gradient-to-r from-[#616161] via-[#ffffff] to-[#616161] bg-clip-text text-transparent relative z-20`}>
           BranchDB
         </h1>
 

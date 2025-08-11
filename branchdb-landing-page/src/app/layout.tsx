@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
-import { Open_Sans } from "next/font/google";
+import { Open_Sans, Onest, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { NavbarDemo } from "@/components/Navbar";
 
+export const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+  weight: ['400', '500', '700']
+});
 export const openSans = Open_Sans({
   variable: "--font-open-sans",
+  subsets: ["latin"],
+  weight: ['400', '500', '700']
+});
+export const onest = Onest({
+  variable: "--font-onest",
   subsets: ["latin"],
   weight: ['400', '500', '700']
 });
@@ -22,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${openSans.variable} antialiased`}
+        className={`${onest.variable} ${geistMono.variable} antialiased`}
       >
 
         <div className="fixed top-0 left-0 w-full z-50 bg-transparent mt-6">

@@ -7,7 +7,7 @@ import {
   useScroll,
   useMotionValueEvent,
 } from "motion/react";
-
+import { usePathname } from 'next/navigation';
 import React, { useRef, useState } from "react";
 
 
@@ -74,9 +74,9 @@ export const Navbar = ({ children, className }: NavbarProps) => {
       {React.Children.map(children, (child) =>
         React.isValidElement(child)
           ? React.cloneElement(
-              child as React.ReactElement<{ visible?: boolean }>,
-              { visible },
-            )
+            child as React.ReactElement<{ visible?: boolean }>,
+            { visible },
+          )
           : child,
       )}
     </motion.div>
@@ -231,6 +231,8 @@ export const MobileNavToggle = ({
 };
 
 export const NavbarLogo = () => {
+  const pathname = usePathname();
+
   return (
     <a
       href="#"
@@ -243,7 +245,7 @@ export const NavbarLogo = () => {
         height={60}
         className="rounded-md"
       /> */}
-      <span className="font-semibold bg-gradient-to-r from-[#fd9648] to-[#fe6a00] text-transparent bg-clip-text text-xl">BranchDB</span>
+      <span className={`font-semibold bg-gradient-to-r ${pathname == "/docs" ? "from-[#616161] via-[#ffffff] to-[#616161]" : "from-[#fd9648] to-[#fe6a00]"} text-transparent bg-clip-text text-xl`}>BranchDB</span>
     </a>
   );
 };
@@ -262,9 +264,9 @@ export const NavbarButton = ({
   className?: string;
   variant?: "primary" | "secondary" | "dark" | "gradient";
 } & (
-  | React.ComponentPropsWithoutRef<"a">
-  | React.ComponentPropsWithoutRef<"button">
-)) => {
+    | React.ComponentPropsWithoutRef<"a">
+    | React.ComponentPropsWithoutRef<"button">
+  )) => {
   const baseStyles =
     "px-4 py-2 rounded-md bg-white button bg-white text-black text-sm font-bold relative cursor-pointer hover:-translate-y-0.5 transition duration-200 inline-block text-center";
 
