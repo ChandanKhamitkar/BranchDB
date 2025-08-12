@@ -4,7 +4,7 @@ import DocsLayout from "./DocsLayout";
 import SubHeadLine from "@/components/docs/SubHeadLine";
 import Point from "@/components/docs/Point";
 
-export default function Docs() {
+export default function Page() {
     return (
         <DocsLayout>
             <div className="w-full h-auto flex flex-col justify-start items-start">

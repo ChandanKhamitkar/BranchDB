@@ -245,7 +245,7 @@ export const NavbarLogo = () => {
         height={60}
         className="rounded-md"
       /> */}
-      <span className={`font-semibold bg-gradient-to-r ${pathname.startsWith("/docs") ? "from-metaliclight via-white to-metaliclight" : "from-primarylight to-primary"} text-transparent bg-clip-text text-xl`}>BranchDB</span>
+      <span className={`font-semibold bg-gradient-to-r ${pathname == "/" ? "from-primarylight to-primary" : "from-metaliclight via-white to-metaliclight"} text-transparent bg-clip-text text-xl`}>BranchDB</span>
     </a>
   );
 };

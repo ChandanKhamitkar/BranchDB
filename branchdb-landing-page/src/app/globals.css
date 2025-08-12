@@ -13,6 +13,7 @@
   --color-primarylight: #fd9648;
   --color-primary: #fe6a00;
   --color-metaliclight: #616161;
+  --color-jsyellow: #F8C816;
 }
 
 @media (prefers-color-scheme: dark) {
