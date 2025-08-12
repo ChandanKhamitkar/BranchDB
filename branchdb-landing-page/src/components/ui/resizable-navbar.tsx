@@ -235,7 +235,7 @@ export const NavbarLogo = () => {
 
   return (
     <a
-      href="#"
+      href="/"
       className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal text-black"
     >
       {/* <img
@@ -245,7 +245,7 @@ export const NavbarLogo = () => {
         height={60}
         className="rounded-md"
       /> */}
-      <span className={`font-semibold bg-gradient-to-r ${pathname == "/docs" ? "from-[#616161] via-[#ffffff] to-[#616161]" : "from-[#fd9648] to-[#fe6a00]"} text-transparent bg-clip-text text-xl`}>BranchDB</span>
+      <span className={`font-semibold bg-gradient-to-r ${pathname.startsWith("/docs") ? "from-metaliclight via-white to-metaliclight" : "from-primarylight to-primary"} text-transparent bg-clip-text text-xl`}>BranchDB</span>
     </a>
   );
 };

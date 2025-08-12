@@ -9,15 +9,15 @@ export default function DocsSideBar() {
             sectionItems: [
                 {
                     itemName: "What is BranchDB?",
-                    anchorLink: "#what_is_branchdb?"
+                    anchorLink: "/docs"
                 },
                 {
                     itemName: "Installation",
                     anchorLink: "#installation"
                 },
                 {
-                    itemName: "Running Locally",
-                    anchorLink: "#running_locally"
+                    itemName: "Quickstart",
+                    anchorLink: "#quickstart"
                 },
             ]
         },
@@ -25,29 +25,29 @@ export default function DocsSideBar() {
             sectionTitle: "Core Concepts",
             sectionItems: [
                 {
-                    itemName: "key & Values",
-                    anchorLink: "#key&values"
+                    itemName: "Commands",
+                    anchorLink: "/docs/concepts"
                 },
                 {
                     itemName: "TTL",
-                    anchorLink: "#TTL"
+                    anchorLink: "/docs/concepts#ttl"
                 },
-                {
-                    itemName: "Persistence",
-                    anchorLink: "#persistence"
-                },
-                {
-                    itemName: "Authentication",
-                    anchorLink: "#authentication"
-                },
+                // {
+                //     itemName: "Persistence",
+                //     anchorLink: "#persistence"
+                // },
+                // {
+                //     itemName: "Authentication",
+                //     anchorLink: "#authentication"
+                // },
             ]
         },
         {
             sectionTitle: "Client SDK's",
             sectionItems: [
                 {
-                    itemName: "JavaScript/TypeScript SDK",
-                    anchorLink: "#javascript_typescript_sdk"
+                    itemName: "JavaScript SDK",
+                    anchorLink: "/docs/sdk"
                 }
             ]
         },
