@@ -238,14 +238,8 @@ export const NavbarLogo = () => {
       href="/"
       className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal text-black"
     >
-      {/* <img
-        src="logo-trans.png"
-        alt="logo"
-        width={60}
-        height={60}
-        className="rounded-md"
-      /> */}
-      <span className={`font-semibold bg-gradient-to-r ${pathname == "/" ? "from-primarylight to-primary" : "from-metaliclight via-white to-metaliclight"} text-transparent bg-clip-text text-xl`}>BranchDB</span>
+      {/* ${pathname == "/" ? "from-primarylight to-primary" : "from-metaliclight via-white to-metaliclight"} */}
+      <span className={`font-semibold bg-gradient-to-r from-metaliclight via-white to-metaliclight text-transparent bg-clip-text text-xl`}>BranchDB</span>
     </a>
   );
 };
