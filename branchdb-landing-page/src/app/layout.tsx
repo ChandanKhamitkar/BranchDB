@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Open_Sans, Onest, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { NavbarDemo } from "@/components/Navbar";
+import NavBar from "@/components/Navbar";
 
 export const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -27,17 +27,14 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode;  
 }>) {
   return (
     <html lang="en">
       <body
         className={`${onest.variable} ${geistMono.variable} antialiased`}
       >
-
-        <div className="fixed top-0 left-0 w-full z-50 bg-transparent mt-6">
-          <NavbarDemo />
-        </div>
+          <NavBar />
         {children}
       </body>
     </html>
