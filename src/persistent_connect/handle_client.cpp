@@ -38,7 +38,7 @@ namespace persistent_connect
 {
     void handle_client(boost::asio::ip::tcp::socket socket, branchdb::Database &db)
     {
-        cout << "New connection established : " << socket.remote_endpoint() << endl;
+    //    cout << "New connection established : " << socket.remote_endpoint() << endl;
 
         // 1. Get AUTH TOKEN & Verify it
         string auth_token;
@@ -136,7 +136,7 @@ namespace persistent_connect
                 string payload;
                 getline(is, payload);
 
-                cout << "[CLIENT] Buffer data recieved: " << payload << endl;
+               cout << "[CLIENT] Buffer data recieved: " << payload << endl;
 
                 branchdb::ResponseMetaData response_obj = helper::command_parser(db, auth_token, payload);
                 string serialized_response = helper::build_serialized_response(response_obj);

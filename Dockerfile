@@ -19,5 +19,7 @@ WORKDIR /app
 EXPOSE 1981
 
 COPY --from=builder /app/build/BranchDB ./BranchDB
+COPY --from=builder /app/auth_config.config ./auth_config.config
+COPY --from=builder /app/branchdb.log ./branchdb.log
 
 CMD ["./BranchDB"]
