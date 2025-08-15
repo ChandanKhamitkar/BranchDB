@@ -368,7 +368,6 @@ namespace branchdb
     {
         unique_lock<shared_mutex> lock(data_mutex_);
         ValueMetaData metadata(value, ttl_duration);
-
         // if (!is_recovering_)
         // {
         //     try
@@ -387,6 +386,7 @@ namespace branchdb
         // }
         internal_set(auth_token, key, metadata);
         // cout << "[OK] SET: key " << key << " -> " << value << " (TTL: " << ttl_duration.count() << "s)" << endl;
+        cout << "[OK]" << endl;
         return branchdb::make_response(200, true, "[SET] Key : " + key + " stored successfully.", monostate{});
     }
 
