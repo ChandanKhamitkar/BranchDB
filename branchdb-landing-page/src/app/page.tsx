@@ -147,70 +147,94 @@ export default function Home() {
       </div>
 
       {/* Meet Developer */}
-      <div className="pt-10 w-full h-fit flex flex-col justify-between relative overflow-clip">
+      <div className="pt-10 w-full h-fit flex flex-col justify-between relative overflow-clip rounded-b-4xl">
         {/* Absolutes */}
         <img
           src="gradii-1.png"
           alt="Meet Developer Background Image"
           className="absolute inset-0 w-full rounded-b-4xl opacity-65 z-0 object-cover"
         />
-        <img
-          src="name-line.svg"
-          alt="Developer Name"
-          className="absolute bottom-10 left-0 z-20 h-1/2"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent z-10"></div>
+        {/* Slate */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/45 to-transparent z-10"></div>
 
-        <p className="text-4xl md:text-8xl font-medium mb-12 text-neutral-500 text-center mx-auto z-20">
-          Meet The Developer
+
+        <img
+          src="long-name.svg"
+          alt="Developer Name"
+          className="w-[85%] absolute bottom-0 left-1/2 -translate-x-1/2 z-20"
+        />
+
+        <p className="text-4xl md:text-8xl font-medium mb-12 text-neutral-500 text-center mx-auto relative z-20">
+          The Brain Behind the Build
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-6 md:px-12 relative z-20">
-          {/* Profile Pic */}
-          <div className="flex justify-center">
-            <div
-              className="w-[85%] max-w-[420px] aspect-[4/5] md:aspect-[3/4] h-auto flex items-end overflow-hidden"
-              aria-hidden="false"
-            >
-              <img
-                src="me.png"
-                alt="Chandan Khamitkar's Profile Pic"
-                className="w-full h-full object-contain object-bottom transform translate-y-[2px]"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col justify-center items-start">
-            <p className="text-lg md:text-xl font-medium text-neutral-400 leading-8 mb-6"> I'm an{" "}
-              <span className="px-3 py-1 rounded-3xl bg-white/30 backdrop-blur-lg text-neutral-900">Engineer</span>  fascinated by the art of system design, databases — the more rooted in the core, the better.
+        {/* 3-column layout on desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-6 md:px-12 relative z-20 items-center">
+          {/* LEFT */}
+          <div className="flex flex-col h-3/4 justify-start items-start md:items-start md:text-left order-2 md:order-1">
+            <p className="text-lg md:text-xl font-medium text-neutral-300 leading-8 mb-4">
+              I'm an <span className="px-3 py-1 rounded-3xl bg-white/30 backdrop-blur-lg text-neutral-900">Engineer</span> fascinated by the art of system design and databases.
             </p>
-            <p className="text-lg md:text-xl font-semibold text-neutral-400 leading-8 mb-6"> 2x Full Stack Developer Intern | 3x Hackathon Winner
+            <p className="text-lg md:text-xl font-semibold text-neutral-400 leading-8 mb-6">
+              2x Full Stack Developer Intern&nbsp;|&nbsp;3x Hackathon Winner
             </p>
 
-            {/* Pre Works */}
-            <p className="text-2xl text-neutral-100 font-medium mt-6">Prev Works</p>
-            <div className="flex items-center mt-4">
-              <a href="https://github.com/ChandanKhamitkar/BillBot" className="underline underline-offset-4 font-semibold text-neutral-300\ text-xl tracking-wide text-neutral-100 mr-1">BillBot</a>
-              <p className="text-lg text-neutral-400"> - From text to invoice in a snap.</p>
+            <p className="text-2xl text-neutral-100 font-medium mt-2">Prev Works</p>
+            <div className="flex items-center mt-3">
+              <a
+                href="https://github.com/ChandanKhamitkar/BillBot"
+                className="underline underline-offset-4 font-semibold text-neutral-100 mr-2"
+                target="_blank" rel="noopener noreferrer"
+              >
+                BillBot
+              </a>
+              <p className="text-lg text-neutral-400">— From text to invoice in a snap.</p>
             </div>
-            <p className="text-xl md:text-4xl font-medium italic text-neutral-300 leading-8 my-16"> <span className="text-7xl font-serif">"</span> Design for scale. Build for clarity.
-            </p>
 
             {/* Social Icons */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 mt-8">
               {socials.map(({ href, Icon }, idx) => (
                 <a key={idx} href={href} target="_blank" rel="noopener noreferrer">
                   <Icon size={30} className="hover:scale-110 transition-all duration-300" />
                 </a>
               ))}
             </div>
+          </div>
 
+          {/* CENTER */}
+          <div className="relative flex justify-center order-1 md:order-2">
+            {/* Circle behind everything in this section */}
+            <div className="absolute flex items-center justify-center pointer-events-none z-15">
+              <div className="w-[600px] h-[600px] bg-black/20 rounded-full backdrop-blur-md translate-y-[10%]"></div>
+            </div>
+
+            {/* Profile image*/}
+            <div
+              className="w-[85%] max-w-[420px] aspect-[4/5] md:aspect-[3/4] h-auto flex items-end overflow-hidden relative z-25"
+              aria-hidden="false"
+            >
+              <img
+                src="me.png"
+                alt="Chandan Khamitkar's Profile Pic"
+                className="w-full h-full object-contain object-bottom translate-y-[2px]"
+              />
+            </div>
+          </div>
+
+          {/* RIGHT */}
+          <div className="flex h-3/4 flex-col justify-start items-start md:items-end text-left md:text-right order-3">
+            <p className="text-lg md:text-xl font-medium text-neutral-300 leading-8 mb-6">
+              The more rooted in the core, the better.
+            </p>
+            <p className="text-xl md:text-4xl font-medium italic text-neutral-200 leading-9">
+              <span className="text-5xl md:text-6xl align-[-0.2em]">" </span>
+              Design for scale.<br />Build for clarity.
+            </p>
           </div>
         </div>
       </div>
 
-
-      <div className="py-30"></div>
+      <div className="py-10"></div>
     </div >
   );
 }
