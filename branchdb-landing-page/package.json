@@ -9,18 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@tabler/icons-react": "^3.34.1",
-    "@tsparticles/engine": "^3.9.1",
-    "@tsparticles/react": "^3.0.0",
-    "@tsparticles/slim": "^3.9.1",
-    "clsx": "^2.1.1",
     "highlight.js": "^11.11.1",
-    "motion": "^12.23.12",
     "next": "15.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "react-icons": "^5.5.0",
-    "tailwind-merge": "^3.3.1"
+    "react-icons": "^5.5.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

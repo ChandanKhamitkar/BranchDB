@@ -69,7 +69,7 @@ const NavBar = () => {
             <a href="/sdk" className={navClass}>
               SDK
             </a>
-            <a href="/downloads" className={navClass}>
+            <a href="/#meet_developer" className={navClass}>
               Meet Developer
             </a>
           </div>
@@ -94,17 +94,14 @@ const NavBar = () => {
       {isNavOpen && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 w-[75%]">
           <div className="flex flex-col gap-4 bg-black/30 backdrop-blur-2xl border border-white/10 py-4 px-6 shadow-xl rounded-xl font-medium">
-            <a href="/abouts" className={navClass}>
-              Docs
-            </a>
             <a href="/docs" className={navClass}>
               Docs
             </a>
-            <a href="/playground" className={navClass}>
-              Playground
+            <a href="/sdk" className={navClass}>
+              SDK
             </a>
-            <a href="/downloads" className={navClass}>
-              Downloads
+            <a href="/#meet_developer" className={navClass}>
+              Meet Developer
             </a>
           </div>
         </div>
