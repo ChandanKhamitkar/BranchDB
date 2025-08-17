@@ -29,6 +29,8 @@ set(SRC_CLI_FILES
     src/cli/commands/flush_command.cpp
     src/cli/commands/info_command.cpp
     src/cli/commands/help_command.cpp
+    src/cli/commands/auth_command.cpp
+    src/cli/commands/register_command.cpp
 
     # Commands helper
     src/cli/commands/helper/is_valid_seconds.cpp

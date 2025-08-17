@@ -34,6 +34,8 @@ namespace helper
         {GETALL, "GETALL"},
         {FLUSH, "FLUSH"},
         {INFO, "INFO"},
+        {AUTH, "AUTH"},
+        {REGISTER, "REGISTER"},
     };
     unordered_map<string, CommandEnums> string_command_map = {
         {"EXIT", EXIT},
@@ -49,6 +51,8 @@ namespace helper
         {"GETALL", GETALL},
         {"FLUSH", FLUSH},
         {"INFO", INFO},
+        {"AUTH", AUTH},
+        {"REGISTER", REGISTER},
     };
 
     string CmdEnumToString(CommandEnums cmd)

@@ -35,7 +35,9 @@ namespace helper
         PERSIST,
         GETALL,
         FLUSH,
-        INFO
+        INFO,
+        AUTH,
+        REGISTER
     };
 
     string CmdEnumToString(CommandEnums cmd);

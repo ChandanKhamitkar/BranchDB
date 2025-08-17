@@ -20,6 +20,8 @@
 
 namespace command
 {
+    branchdb::ResponseMetaData handleAUTH(branchdb::Database &db, const string &payload);
+    branchdb::ResponseMetaData handleREGISTER(branchdb::Database &db, const string &payload);
     branchdb::ResponseMetaData handleSET(branchdb::Database &db, const string &auth_token, vector<string> &args);
     branchdb::ResponseMetaData handleGET(branchdb::Database &db, const string &auth_token, vector<string> &args);
     branchdb::ResponseMetaData handleDEL(branchdb::Database &db, const string &auth_token, vector<string> &args);
