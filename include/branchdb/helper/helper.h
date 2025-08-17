@@ -15,6 +15,7 @@
 
 #include <string>
 #include <branchdb/db/response_metadata.h>
+#include <boost/asio.hpp>
 
 namespace helper
 {
@@ -22,6 +23,7 @@ namespace helper
     void trim_whitespace(string &str);
     branchdb::ResponseMetaData command_parser(branchdb::Database &db, const string &auth_token, string &cmd_line);
     string build_serialized_response(branchdb::ResponseMetaData &response_obj);
+    bool write_response_to_client(boost::asio::ip::tcp::socket &socket, string serialized_response);
 } // namespace helper
 
 #endif

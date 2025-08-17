@@ -11,7 +11,6 @@
  */
 
 #include <branchdb/db/database.h>
-#include <branchdb/cli/start_cli.h>
 #include <branchdb/persistent_connect/persistent_connect.h>
 #include <csignal>
 #include <thread>
@@ -22,8 +21,7 @@ using namespace chrono;
 
 void handleSigint(int signal)
 {
-    cout << endl
-         << "Data stored to DISK successfully, Status:[OK]" << endl;
+    cout << endl << "Data stored to DISK successfully, Status:[OK]" << endl;
 }
 
 int main()
@@ -42,7 +40,5 @@ int main()
 
         thread(persistent_connect::handle_client, move(socket), ref(db)).detach();
     }
-
-    // cli::startCLI(db);
     return 0;
 }

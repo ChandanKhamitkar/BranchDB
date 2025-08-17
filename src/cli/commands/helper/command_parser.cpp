@@ -19,6 +19,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <boost/asio.hpp>
 
 using namespace std;
 
@@ -58,9 +59,7 @@ namespace helper
         switch (cmdEnumOpt.value())
         {
         case helper::CommandEnums::EXIT:
-            cout << "Exiting BranchDB CLI. GoodBye!" << endl;
-            return branchdb::make_response(200, true, "Exiting BranchDB. GoodBye!", monostate{});
-            // exit(0);
+            return branchdb::make_response(200, true, "EXIT", "EXIT");
         case helper::CommandEnums::TEST:
             test::testDB(db);
             return branchdb::make_response(200, true, "DONE with testing DB", monostate{});

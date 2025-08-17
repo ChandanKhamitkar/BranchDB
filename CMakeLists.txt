@@ -14,9 +14,6 @@ set(SRC_CORE_FILES
 )
 set(SRC_CLI_FILES
 
-    # CLI Entry point
-    src/cli/start_cli.cpp
-
     # CLI Commands
     src/cli/commands/set_command.cpp
     src/cli/commands/get_command.cpp
@@ -56,6 +53,12 @@ set(SRC_DB_FILES
 set(SRC_HELPER_FILES
     # HELPER
     src/helper/build_serialized_response.cpp
+    src/helper/write_response_to_client.cpp
+)
+    
+set(SRC_AUTH_FILES
+    # Auth
+    src/auth/auth_handler.cpp
 )
 
 # ALL SRC FILES
@@ -65,6 +68,7 @@ set(ALL_SRC_FILES
     ${SRC_TEST_FILES}
     ${SRC_DB_FILES}
     ${SRC_HELPER_FILES}
+    ${SRC_AUTH_FILES}
 )
 
 # Add an Executabale target
