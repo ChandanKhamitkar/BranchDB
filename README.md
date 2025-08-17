@@ -33,6 +33,7 @@ Branch DB is designed with a minimalistic architecture to focus on core database
 5. **Compact Logging** - Log file is compacted automatically when the `FLUSH` command is executed.
 6. **Multi-User Architecture** - Supports multiple databases within a single instance (e.g., `staging`, `production`).
 7. **Authentication** - Built-in security to control and verify user access.
+
 ---
 
 # Getting Started
@@ -76,17 +77,36 @@ cd Debug
 3. Run the BranchDB
 
 ```
+on Windows
 ./BranchDB.exe
+
+on Mac
+./BranchDB
 ```
 
 ### OR
+# This will handle building & running of BranchDB
 
-### If you are on BASH/UNIX terminal, directly run
+### On Linux / macOS (Bash / Zsh / Unix terminal), directly run
 
-#### This will handle building & running of BranchDB
 
 ```
 ./branchdb-run.sh
+```
+
+### On macOS only
+```
+./branchdb-run-mac.sh
+```
+
+### On Windows (CMD)
+```
+branchdb-run.cmd
+```
+
+### On Windows (PowerShell)
+```
+.\branchdb-run.ps1
 ```
 
 ### Option B: Docker Container - Self Containerization
@@ -96,13 +116,13 @@ This method builds a self-contained Docker image of your database, which can be 
 1. Build the Docker Image:
 
 ```
-docker build -t branchdb-server .
+docker build -t branchdb-image .
 ```
 
 2. Run the Container: This command runs the server and exposes it on port 1981.
 
 ```
-docker run -p 1981:1981 branchdb-server
+docker run -p 1981:1981 branchdb-image
 ```
 
 ### Option 3: Pulling Docker Image (Recommended)
@@ -151,7 +171,6 @@ Follow this: [🔗BranchDB Client SDK](https://www.npmjs.com/package/branchdb-cl
 | `EXPIRE <key> EX <seconds>`      | Sets a new TTL for an existing key.               |
 | `PERSIST <key>`                  | Removes the TTL from a key.                       |
 | `GETALL`                         | Returns a list of all keys in the database.       |
-| `FLUSH`                          | ( Asks confirmation before deleting all keys. )   |
 | `FLUSH FORCE`                    | Deletes all keys from the database.               |
 
 # License 📄

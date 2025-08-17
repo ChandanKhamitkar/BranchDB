@@ -1,7 +1,7 @@
 #!/bin/bash
-# chmod +x branchdb-run.sh
+# chmod +x branchdb-run-mac.sh
 
-echo "Building BranchDB, please wait..."
+echo "Building BranchDB for macOS, please wait..."
 mkdir -p build
 cd build || exit 1
 
@@ -10,4 +10,4 @@ cmake --build . || exit 1
 
 echo "Executing BranchDB..."
 cd Debug || exit 1
-exec ./BranchDB.exe
+exec ./BranchDB
