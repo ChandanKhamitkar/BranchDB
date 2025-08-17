@@ -118,8 +118,10 @@ namespace branchdb
 
     // Log Compaction Method
     void Database::compact_log()
-    {
-        unique_lock<shared_mutex> lock(data_mutex_);
+    {   
+        // Right now Compact log is being used only in FLUSH command, so as it already acquires lock.
+        // If we use write lock here it will cause DEADLOCK scenario.
+        // unique_lock<shared_mutex> lock(data_mutex_);
 
         string temp_log_file = LOG_FILE_NAME + ".tmp";
         ofstream temp_log_out(temp_log_file, ios::out | ios::binary);
