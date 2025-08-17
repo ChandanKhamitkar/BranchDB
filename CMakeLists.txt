@@ -10,7 +10,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 # Define source files for Executables
 set(SRC_CORE_FILES
     src/main.cpp
-    src/database.cpp
 )
 set(SRC_CLI_FILES
 
@@ -45,9 +44,32 @@ set(SRC_TEST_FILES
 )
     
 set(SRC_DB_FILES
-    # DB
-    src/db/value_metadata.cpp
-    src/db/response_metadata.cpp
+    # CORE
+    src/db/core/database_core.cpp
+    src/db/core/value_metadata.cpp
+    src/db/core/response_metadata.cpp
+
+    # AUTH
+    src/db/auth/database_auth.cpp
+
+    # PERSISTENCE
+    src/db/persistence/database_persistence.cpp
+    
+    # THREADS
+    src/db/threads/database_threads.cpp
+
+    # COMMANDS
+    src/db/commands/database_del.cpp
+    src/db/commands/database_exists.cpp
+    src/db/commands/database_expire.cpp
+    src/db/commands/database_flush.cpp
+    src/db/commands/database_get.cpp
+    src/db/commands/database_getall.cpp
+    src/db/commands/database_info.cpp
+    src/db/commands/database_persist.cpp
+    src/db/commands/database_set.cpp
+    src/db/commands/database_ttl.cpp
+
 )
     
 set(SRC_HELPER_FILES
