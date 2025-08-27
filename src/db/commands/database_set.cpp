@@ -43,8 +43,8 @@ namespace branchdb
             }
         }
         internal_set(auth_token, key, metadata);
-        // cout << "[OK] SET: key " << key << " -> " << value << " (TTL: " << ttl_duration.count() << "s)" << endl;
-        cout << "[OK]" << endl;
+        cout << "[OK] SET: key " << key << " -> " << value << " (TTL: " << ttl_duration.count() << "s)" << endl;
+        // cout << "[OK]" << endl;
         return branchdb::make_response(200, true, "[SET] Key : " + key + " stored successfully.", monostate{});
     }
 

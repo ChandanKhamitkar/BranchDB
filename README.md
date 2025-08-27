@@ -11,6 +11,7 @@
 - **Serialization:** Efficient custom binary format for encoding and decoding data
 - **Concurrency:** Reader-Writer locks for thread-safe operations
 - **TTL:** Support for setting expiry times on keys, with automatic background cleanup of expired entries.
+- **LRU ( Least Recently Used ) Cache:** Evicting least used keys, when LRU cache capacity hits.
 - **API/CLI Support:** Basic command-line interface for interacting with the database
 
 ### ✅ In Scope:
@@ -21,6 +22,7 @@
 - Safe concurrent access (read/write locks)
 - Simple CLI interface for basic operations
 - Clear documentation and open-source release
+- LRU ( Least Recently Used ) Cache
 
 ## Architecture
 
@@ -157,8 +159,16 @@ Once the server is running (either locally or in a Docker container), you can us
 
 Follow this: [🔗BranchDB Client SDK](https://www.npmjs.com/package/branchdb-client)
 
----
 
+## OR
+# Connect via `CLI`
+```
+telnet localhost 1981
+
+or
+
+nc localhost 1981
+```
 # Commands
 
 | Method                           | Description                                       |

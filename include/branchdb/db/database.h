@@ -26,6 +26,7 @@
 #include <atomic>
 #include <shared_mutex>
 #include "response_metadata.h"
+#include <list>
 
 using namespace std;
 using namespace chrono;
@@ -129,6 +130,11 @@ namespace branchdb
 
         // Compact Log - Avoid indefinite growing log file
         void compact_log();
+
+        // LRU 
+        list<string> lru_list_;
+        unordered_map<string, list<string>::iterator> lru_map_;
+        size_t lru_cache_capacity = 10000;
     };
 } // namespace branchdb
 

@@ -42,8 +42,7 @@ namespace branchdb
         start_time_ = steady_clock::now();
         load_auth_tokens_from_file();
         load_from_log();
-        cout << "[OK] Recovery complete. Database contains." << endl
-             << endl;
+        cout << "[OK] Recovery completed." << endl << endl;
 
         // Start TTL cleanup thread
         ttl_cleanup_thread_ = make_unique<thread>(&Database::ttl_cleanup_loop, this);
@@ -70,18 +69,64 @@ namespace branchdb
     // Internal SET
     void Database::internal_set(const string &auth_token, const string &key, const ValueMetaData &metadata)
     {
-        if (!metadata.is_expired())
+        if (metadata.is_expired())
         {
+            return;
+        }
+
+        string composite_key = auth_token + ":" + key;
+
+        // LRU Existing Key
+        if (lru_map_.find(composite_key) != lru_map_.end())
+        {
+            lru_list_.splice(lru_list_.begin(), lru_list_, lru_map_[composite_key]);
+            data_[auth_token][key] = metadata;
+        }
+        // Add Key to LRU
+        else
+        {
+            if (lru_list_.size() == lru_cache_capacity)
+            {
+                const string lru_key = lru_list_.back();
+                lru_map_.erase(lru_key);
+                lru_list_.pop_back();
+
+                size_t delim_pos = lru_key.find(':');
+                if (delim_pos != string::npos)
+                {
+                    string evicted_auth_token = lru_key.substr(0, delim_pos);
+                    string evicted_key = lru_key.substr(delim_pos + 1);
+
+                    if (data_.find(evicted_auth_token) != data_.end())
+                    {
+                        data_.at(evicted_auth_token).erase(evicted_key);
+                    }
+                }
+            }
+
+            lru_list_.push_front(composite_key);
+            lru_map_[composite_key] = lru_list_.begin();
             data_[auth_token][key] = metadata;
         }
     }
 
-    // Internal GET
+    // Internal DEL
     bool Database::internal_del(const string &auth_token, const string &key)
     {
         if (data_.find(auth_token) != data_.end())
         {
-            return data_.at(auth_token).erase(key) > 0;
+            if (data_.at(auth_token).erase(key) > 0)
+            {
+
+                // Delete Key in LRU as well
+                string composite_key = auth_token + ":" + key;
+                if (lru_map_.find(composite_key) != lru_map_.end())
+                {
+                    lru_list_.erase(lru_map_[composite_key]);
+                    lru_map_.erase(composite_key);
+                }
+                return true;
+            }
         }
         return false;
     }

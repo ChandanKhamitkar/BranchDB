@@ -41,8 +41,13 @@ namespace branchdb
         // if key expired
         if (it->second.is_expired())
         {
-            cout << "[X] GET: key " << key << " found but expired. Deleting" << endl;
             return branchdb::make_response(404, false, "[GET] Key : " + key + " expired.", monostate{});
+        }
+
+        // Update the LRU List
+        string composite_key = auth_token + ":" + key;
+        if(lru_map_.find(composite_key) != lru_map_.end()){
+            lru_list_.splice(lru_list_.begin(), lru_list_, lru_map_[composite_key]);          
         }
 
         // Key found
